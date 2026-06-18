@@ -853,8 +853,8 @@ var FileManager = class {
       if (!m)
         continue;
       const newTitle = `#### ${formatDayTitle(m, this.settings)}`;
-      const weekdayPattern = /^(####\s+).+?\s+(星期[一二三四五六日]|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/;
-      const newLine = line.replace(weekdayPattern, newTitle);
+      const headingPattern = /^(####\s+[^：:\n]+)/;
+      const newLine = line.replace(headingPattern, newTitle);
       if (newLine !== line) {
         lines[i] = newLine;
         changed++;

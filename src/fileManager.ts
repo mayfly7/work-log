@@ -650,9 +650,9 @@ export class FileManager {
       if (!m) continue;
 
       const newTitle = `#### ${formatDayTitle(m, this.settings)}`;
-      // 只替换日期+星期部分，保留冒号后的内容
-      const weekdayPattern = /^(####\s+).+?\s+(星期[一二三四五六日]|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/;
-      const newLine = line.replace(weekdayPattern, newTitle);
+      // 替换整行标题部分（日期+星期+节假日），保留冒号后的内容
+      const headingPattern = /^(####\s+[^：:\n]+)/;
+      const newLine = line.replace(headingPattern, newTitle);
       if (newLine !== line) {
         lines[i] = newLine;
         changed++;
