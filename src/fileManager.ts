@@ -516,15 +516,7 @@ export class FileManager {
 
       if (line.startsWith("#### ")) {
         // 保存上一个日期块
-        if (currentDateKey && currentContent.length > 0) {
-          // 去掉末尾空行
-          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
-            currentContent.pop();
-          }
-          if (currentContent.length > 0) {
-            dateContent.set(currentDateKey, currentContent);
-          }
-        }
+        this.saveDateContent(dateContent, currentDateKey!, currentContent);
         // 解析新日期
         const m = parseDayTitle(line, this.settings.dateFormat);
         currentDateKey = m ? m.format("YYYY-MM-DD") : null;
@@ -539,14 +531,7 @@ export class FileManager {
         }
       } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
         // 遇到标题，保存当前日期块
-        if (currentDateKey && currentContent.length > 0) {
-          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
-            currentContent.pop();
-          }
-          if (currentContent.length > 0) {
-            dateContent.set(currentDateKey, currentContent);
-          }
-        }
+        this.saveDateContent(dateContent, currentDateKey!, currentContent);
         currentDateKey = null;
         currentContent = [];
       } else if (currentDateKey) {
@@ -555,14 +540,7 @@ export class FileManager {
       }
     }
     // 最后一个日期块
-    if (currentDateKey && currentContent.length > 0) {
-      while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
-        currentContent.pop();
-      }
-      if (currentContent.length > 0) {
-        dateContent.set(currentDateKey, currentContent);
-      }
-    }
+    this.saveDateContent(dateContent, currentDateKey!, currentContent);
 
     // ── 第2步：按正确结构重建文件 ──
     const newLines: string[] = [...headerLines];
@@ -636,35 +614,26 @@ export class FileManager {
   /**
    * 迁移日期格式：把文件中旧格式的日期标题替换为当前设置的日期格式
    */
+  /**
+   * 迁移日期格式：使用全量重建方式，彻底消除因格式切换导致的重复日期标题
+   */
   async migrateDateFormat(year: number): Promise<void> {
-    const file = await this.getOrCreateFile(year);
-    const content = await this.app.vault.read(file);
-    const lines = content.split("\n");
+    await this.repairYearStructure(year);
+    new Notice(`${year} 年日期格式已迁移并清理完成`);
+  }
 
-    let changed = 0;
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (!line.startsWith("#### ")) continue;
-
-      const m = parseDayTitle(line, this.settings.dateFormat);
-      if (!m) continue;
-
-      const newTitle = `#### ${formatDayTitle(m, this.settings)}`;
-      // 只替换日期+星期部分，保留冒号后的内容
-      const weekdayPattern = /^(####\s+).+?\s+(星期[一二三四五六日]|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/;
-      const newLine = line.replace(weekdayPattern, newTitle);
-      if (newLine !== line) {
-        lines[i] = newLine;
-        changed++;
-      }
+  /** 将日期内容安全存入 Map，重复日期（格式切换残留）自动合并 */
+  private saveDateContent(dateContent: Map<string, string[]>, key: string, content: string[]): void {
+    // 去掉末尾空行
+    while (content.length > 0 && content[content.length - 1].trim() === "") {
+      content.pop();
     }
-
-    if (changed > 0) {
-      await this.app.vault.modify(file, lines.join("\n"));
-      this.invalidateCache(year);
-      new Notice(`${year} 年共迁移 ${changed} 条日期标题为 ${this.settings.dateFormat} 格式`);
+    if (content.length === 0) return;
+    if (dateContent.has(key)) {
+      // 相同日期存在重复标题（格式切换导致），合并内容
+      dateContent.get(key)!.push(...content);
     } else {
-      new Notice(`${year} 年无需迁移，所有日期标题已是 ${this.settings.dateFormat} 格式`);
+      dateContent.set(key, content);
     }
   }
 
@@ -695,14 +664,7 @@ export class FileManager {
       headerDone = true;
 
       if (line.startsWith("#### ")) {
-        if (currentDateKey && currentContent.length > 0) {
-          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
-            currentContent.pop();
-          }
-          if (currentContent.length > 0) {
-            dateContent.set(currentDateKey, currentContent);
-          }
-        }
+        this.saveDateContent(dateContent, currentDateKey!, currentContent);
         const m = parseDayTitle(line, this.settings.dateFormat);
         currentDateKey = m ? m.format("YYYY-MM-DD") : null;
         currentContent = [];
@@ -714,28 +676,14 @@ export class FileManager {
           currentContent.push(line.substring(colonIdx + 1).trim());
         }
       } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
-        if (currentDateKey && currentContent.length > 0) {
-          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
-            currentContent.pop();
-          }
-          if (currentContent.length > 0) {
-            dateContent.set(currentDateKey, currentContent);
-          }
-        }
+        this.saveDateContent(dateContent, currentDateKey!, currentContent);
         currentDateKey = null;
         currentContent = [];
       } else if (currentDateKey) {
         currentContent.push(line);
       }
     }
-    if (currentDateKey && currentContent.length > 0) {
-      while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
-        currentContent.pop();
-      }
-      if (currentContent.length > 0) {
-        dateContent.set(currentDateKey, currentContent);
-      }
-    }
+    this.saveDateContent(dateContent, currentDateKey!, currentContent);
 
     // ── 重建文件（只到今天的日期）──
     const newLines: string[] = [...headerLines];
@@ -849,14 +797,7 @@ export class FileManager {
       headerDone = true;
 
       if (line.startsWith("#### ")) {
-        if (currentDateKey && currentContent.length > 0) {
-          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
-            currentContent.pop();
-          }
-          if (currentContent.length > 0) {
-            dateContent.set(currentDateKey, currentContent);
-          }
-        }
+        this.saveDateContent(dateContent, currentDateKey!, currentContent);
         const m = parseDayTitle(line, this.settings.dateFormat);
         currentDateKey = m ? m.format("YYYY-MM-DD") : null;
         currentContent = [];
@@ -868,28 +809,14 @@ export class FileManager {
           currentContent.push(line.substring(colonIdx + 1).trim());
         }
       } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
-        if (currentDateKey && currentContent.length > 0) {
-          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
-            currentContent.pop();
-          }
-          if (currentContent.length > 0) {
-            dateContent.set(currentDateKey, currentContent);
-          }
-        }
+        this.saveDateContent(dateContent, currentDateKey!, currentContent);
         currentDateKey = null;
         currentContent = [];
       } else if (currentDateKey) {
         currentContent.push(line);
       }
     }
-    if (currentDateKey && currentContent.length > 0) {
-      while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
-        currentContent.pop();
-      }
-      if (currentContent.length > 0) {
-        dateContent.set(currentDateKey, currentContent);
-      }
-    }
+    this.saveDateContent(dateContent, currentDateKey!, currentContent);
 
     // ── 重建文件（只到今天的日期）──
     const newLines: string[] = [...headerLines];
