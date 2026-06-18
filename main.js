@@ -85,6 +85,13 @@ var WorkLogSettingTab = class extends import_obsidian.PluginSettingTab {
         await this.plugin.fileManager.migrateDateFormat(year);
       })
     );
+    new import_obsidian.Setting(containerEl).setName("\u6E05\u7406 Git \u51B2\u7A81\u6807\u8BB0").setDesc("\u6E05\u9664\u6587\u4EF6\u4E2D\u6B8B\u7559\u7684 Git/Obsidian Git \u51B2\u7A81\u6807\u8BB0").addButton(
+      (btn) => btn.setButtonText("\u6E05\u7406\u6807\u8BB0").onClick(async () => {
+        const year = new Date().getFullYear();
+        const removed = await this.plugin.fileManager.cleanGitConflicts(year);
+        new import_obsidian.Notice(removed > 0 ? `${year} \u5E74\u6587\u4EF6\u5DF2\u6E05\u7406 ${removed} \u5904\u51B2\u7A81\u6807\u8BB0` : `${year} \u5E74\u6587\u4EF6\u65E0\u9700\u6E05\u7406`);
+      })
+    );
     new import_obsidian.Setting(containerEl).setName("\u5468\u8D77\u59CB\u65E5").setDesc("\u6BCF\u5468\u4ECE\u54EA\u4E00\u5929\u5F00\u59CB").addDropdown(
       (dd) => dd.addOption("monday", "\u5468\u4E00").addOption("sunday", "\u5468\u65E5").setValue(this.plugin.settings.weekStart).onChange(async (value) => {
         this.plugin.settings.weekStart = value;
@@ -838,9 +845,43 @@ var FileManager = class {
     this.invalidateCache(year);
   }
   /**
+   * 清理文件中的 Git/Obsidian Git 冲突标记
+   */
+  async cleanGitConflicts(year) {
+    const filePath = this.getFilePath(year);
+    const file = this.app.vault.getAbstractFileByPath(filePath);
+    if (!file)
+      return 0;
+    const content = await this.app.vault.read(file);
+    const lines = content.split("\n");
+    const cleaned = [];
+    let removed = 0;
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed === '<mark class="conflict ours">' || trimmed === '<mark class="conflict theirs">' || trimmed === "</mark>" || trimmed === "<<<<<<<" || trimmed === "=======" || trimmed === ">>>>>>>") {
+        removed++;
+        continue;
+      }
+      let cleanedLine = line.replace(/<\/?mark class="conflict (ours|theirs)">/g, "").replace(/<\/mark>/g, "");
+      if (cleanedLine !== line)
+        removed++;
+      if (cleanedLine.trim() === "" && line.trim() !== "") {
+        removed++;
+        continue;
+      }
+      cleaned.push(cleanedLine);
+    }
+    if (removed > 0) {
+      await this.app.vault.modify(file, cleaned.join("\n"));
+      this.invalidateCache(year);
+    }
+    return removed;
+  }
+  /**
    * 迁移日期格式：把文件中旧格式的日期标题替换为当前设置的日期格式
    */
   async migrateDateFormat(year) {
+    await this.cleanGitConflicts(year);
     const file = await this.getOrCreateFile(year);
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");

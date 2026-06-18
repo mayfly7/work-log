@@ -634,9 +634,57 @@ export class FileManager {
   }
 
   /**
+   * 清理文件中的 Git/Obsidian Git 冲突标记
+   */
+  async cleanGitConflicts(year: number): Promise<number> {
+    const filePath = this.getFilePath(year);
+    const file = this.app.vault.getAbstractFileByPath(filePath) as TFile | null;
+    if (!file) return 0;
+
+    const content = await this.app.vault.read(file);
+    const lines = content.split("\n");
+    const cleaned: string[] = [];
+    let removed = 0;
+
+    for (const line of lines) {
+      // 跳过纯冲突标记行
+      const trimmed = line.trim();
+      if (trimmed === '<mark class="conflict ours">' ||
+          trimmed === '<mark class="conflict theirs">' ||
+          trimmed === '</mark>' ||
+          trimmed === '<<<<<<<' ||
+          trimmed === '=======' ||
+          trimmed === '>>>>>>>') {
+        removed++;
+        continue;
+      }
+      // 清理行中的冲突标记（如 `内容</mark><mark class="conflict theirs">`）
+      let cleanedLine = line
+        .replace(/<\/?mark class="conflict (ours|theirs)">/g, "")
+        .replace(/<\/mark>/g, "");
+      if (cleanedLine !== line) removed++;
+      // 清理后如果变成空行，跳过
+      if (cleanedLine.trim() === "" && line.trim() !== "") {
+        removed++;
+        continue;
+      }
+      cleaned.push(cleanedLine);
+    }
+
+    if (removed > 0) {
+      await this.app.vault.modify(file, cleaned.join("\n"));
+      this.invalidateCache(year);
+    }
+    return removed;
+  }
+
+  /**
    * 迁移日期格式：把文件中旧格式的日期标题替换为当前设置的日期格式
    */
   async migrateDateFormat(year: number): Promise<void> {
+    // 先清理冲突标记，防止其污染迁移结果
+    await this.cleanGitConflicts(year);
+
     const file = await this.getOrCreateFile(year);
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");

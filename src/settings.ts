@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import type WorkLogPlugin from "./main";
 
 export interface WorkLogSettings {
@@ -125,6 +125,21 @@ export class WorkLogSettingTab extends PluginSettingTab {
           .onClick(async () => {
             const year = new Date().getFullYear();
             await this.plugin.fileManager.migrateDateFormat(year);
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("清理 Git 冲突标记")
+      .setDesc("清除文件中残留的 Git/Obsidian Git 冲突标记")
+      .addButton((btn) =>
+        btn
+          .setButtonText("清理标记")
+          .onClick(async () => {
+            const year = new Date().getFullYear();
+            const removed = await this.plugin.fileManager.cleanGitConflicts(year);
+            new Notice(removed > 0
+              ? `${year} 年文件已清理 ${removed} 处冲突标记`
+              : `${year} 年文件无需清理`);
           })
       );
 
