@@ -1746,7 +1746,46 @@ var CalendarView = class extends import_obsidian4.ItemView {
         await this.render();
         await this.plugin.fileManager.openAndNavigateToDate(navigateTarget);
       });
-      if (!this.app.isMobile) {
+      if (this.app.isMobile) {
+        let longPressTimer = null;
+        cell.addEventListener("touchstart", (e) => {
+          longPressTimer = window.setTimeout(async () => {
+            longPressTimer = null;
+            const [preview, todos] = await Promise.all([
+              this.plugin.fileManager.getDayPreview(dateCopy, 4),
+              this.plugin.fileManager.getIncompleteTodosForDate(dateCopy)
+            ]);
+            const lines = [];
+            if (preview.length > 0) {
+              lines.push("\u{1F4C4} \u5DE5\u4F5C\u8BB0\u5F55\uFF1A");
+              lines.push(...preview);
+            }
+            if (todos.length > 0) {
+              lines.push("");
+              lines.push(`\u2610 \u5F85\u529E\uFF08${todos.length}\uFF09\uFF1A`);
+              for (const t of todos)
+                lines.push(`  \u2610 ${t.text}`);
+            }
+            if (lines.length === 0) {
+              lines.push("\uFF08\u65E0\u8BB0\u5F55\uFF09");
+            }
+            new import_obsidian4.Notice(`${dateCopy.format("MM\u6708DD\u65E5")}
+${lines.join("\n")}`, 5e3);
+          }, 600);
+        }, { passive: true });
+        cell.addEventListener("touchend", () => {
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+        });
+        cell.addEventListener("touchmove", () => {
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+        }, { passive: true });
+      } else {
         cell.addEventListener("mouseenter", async (e) => {
           cell.addClass("wl-hover");
           this.updateButtonTextForDate(dateCopy);
@@ -1808,6 +1847,7 @@ var CalendarView = class extends import_obsidian4.ItemView {
       amBtn.textContent = "\u2600 \u4E0A\u5348";
       amBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
+        popup.style.display = "none";
         await this.plugin.fileManager.insertSessionLabel(getTarget(), "\u4E0A\u5348");
         await this.render();
       });
@@ -1815,6 +1855,7 @@ var CalendarView = class extends import_obsidian4.ItemView {
       pmBtn.textContent = "\u{1F319} \u4E0B\u5348";
       pmBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
+        popup.style.display = "none";
         await this.plugin.fileManager.insertSessionLabel(getTarget(), "\u4E0B\u5348");
         await this.render();
       });
@@ -1823,11 +1864,15 @@ var CalendarView = class extends import_obsidian4.ItemView {
         const isVisible = popup.style.display !== "none";
         popup.style.display = isVisible ? "none" : "flex";
       });
-      document.addEventListener("click", (ev) => {
+      const closeHandler = (ev) => {
         if (!actionBar.contains(ev.target)) {
           popup.style.display = "none";
         }
-      });
+      };
+      document.addEventListener("click", closeHandler);
+      if (this.app.isMobile) {
+        document.addEventListener("touchstart", closeHandler, { passive: true });
+      }
     }
     const todoBtn = actionBar.createEl("button", { cls: "wl-todo-btn" });
     todoBtn.textContent = "\u2610 \u6DFB\u52A0\u5F85\u529E";
@@ -2382,7 +2427,7 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
       this.app.workspace.revealLeaf(existing[0]);
       return;
     }
-    const leaf = this.app.workspace.getLeaf("tab");
+    const leaf = this.app.workspace.getLeaf(this.app.isMobile ? "split" : "tab");
     if (leaf) {
       await leaf.setViewState({ type: SEARCH_VIEW_TYPE, active: true });
       this.app.workspace.revealLeaf(leaf);

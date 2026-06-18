@@ -356,7 +356,8 @@ export default class WorkLogPlugin extends Plugin {
       return;
     }
 
-    const leaf = this.app.workspace.getLeaf("tab");
+    // 移动端用 split（分屏），桌面端用 tab
+    const leaf = this.app.workspace.getLeaf(this.app.isMobile ? "split" : "tab");
     if (leaf) {
       await leaf.setViewState({ type: SEARCH_VIEW_TYPE, active: true });
       this.app.workspace.revealLeaf(leaf);

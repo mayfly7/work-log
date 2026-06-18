@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, moment, requestUrl } from "obsidian";
+import { ItemView, WorkspaceLeaf, moment, requestUrl, Notice } from "obsidian";
 import type WorkLogPlugin from "./main";
 import { isSameDay } from "./dateUtils";
 import { getHolidayName, fetchHolidays } from "./holidays";
@@ -252,8 +252,47 @@ export class CalendarView extends ItemView {
         await this.plugin.fileManager.openAndNavigateToDate(navigateTarget);
       });
 
-      // Hover preview: temporary selected box + update button text (desktop only)
-      if (!this.app.isMobile) {
+      // 移动端：长按预览日期内容（替代桌面端 hover tooltip）
+      if (this.app.isMobile) {
+        let longPressTimer: number | null = null;
+        cell.addEventListener("touchstart", (e) => {
+          longPressTimer = window.setTimeout(async () => {
+            longPressTimer = null;
+            // 长按显示日期预览
+            const [preview, todos] = await Promise.all([
+              this.plugin.fileManager.getDayPreview(dateCopy, 4),
+              this.plugin.fileManager.getIncompleteTodosForDate(dateCopy),
+            ]);
+            const lines: string[] = [];
+            if (preview.length > 0) {
+              lines.push("📄 工作记录：");
+              lines.push(...preview);
+            }
+            if (todos.length > 0) {
+              lines.push("");
+              lines.push(`☐ 待办（${todos.length}）：`);
+              for (const t of todos) lines.push(`  ☐ ${t.text}`);
+            }
+            if (lines.length === 0) {
+              lines.push("（无记录）");
+            }
+            new Notice(`${dateCopy.format("MM月DD日")}\n${lines.join("\n")}`, 5000);
+          }, 600);
+        }, { passive: true });
+        cell.addEventListener("touchend", () => {
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+        });
+        cell.addEventListener("touchmove", () => {
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+        }, { passive: true });
+      } else {
+        // 桌面端：Hover preview
         cell.addEventListener("mouseenter", async (e) => {
           cell.addClass("wl-hover");
           this.updateButtonTextForDate(dateCopy);
@@ -329,6 +368,7 @@ export class CalendarView extends ItemView {
       amBtn.textContent = "☀ 上午";
       amBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
+        popup.style.display = "none";
         await this.plugin.fileManager.insertSessionLabel(getTarget(), "上午");
         await this.render();
       });
@@ -337,6 +377,7 @@ export class CalendarView extends ItemView {
       pmBtn.textContent = "🌙 下午";
       pmBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
+        popup.style.display = "none";
         await this.plugin.fileManager.insertSessionLabel(getTarget(), "下午");
         await this.render();
       });
@@ -347,12 +388,17 @@ export class CalendarView extends ItemView {
         popup.style.display = isVisible ? "none" : "flex";
       });
 
-      // Click outside to close
-      document.addEventListener("click", (ev) => {
+      // Click/touch outside to close
+      const closeHandler = (ev: Event) => {
         if (!actionBar.contains(ev.target as Node)) {
           popup.style.display = "none";
         }
-      });
+      };
+      document.addEventListener("click", closeHandler);
+      // 移动端 touchstart 也能关闭
+      if (this.app.isMobile) {
+        document.addEventListener("touchstart", closeHandler, { passive: true });
+      }
     }
 
     // ─── 添加待办按钮 ────────────────────────────
