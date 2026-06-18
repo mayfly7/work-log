@@ -270,12 +270,18 @@ export class CalendarView extends ItemView {
             const lines: string[] = [];
             if (preview.length > 0) {
               lines.push("📄 工作记录：");
-              lines.push(...preview);
+              for (const p of preview.split("\n")) {
+                // mobile Notice 较窄，截断长行
+                lines.push(p.length > 24 ? p.substring(0, 22) + "…" : p);
+              }
             }
             if (todos.length > 0) {
               lines.push("");
               lines.push(`☐ 待办（${todos.length}）：`);
-              for (const t of todos) lines.push(`  ☐ ${t.text}`);
+              for (const t of todos) {
+                const text = `  ☐ ${t.text}`;
+                lines.push(text.length > 24 ? text.substring(0, 22) + "…" : text);
+              }
             }
             if (lines.length === 0) {
               lines.push("（无记录）");

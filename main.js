@@ -1311,11 +1311,20 @@ var FileManager = class {
       const line = lines[i];
       if (line.startsWith("## ") || line.startsWith("### ") || line.startsWith("#### "))
         break;
-      if (line.trim() !== "") {
-        previewLines.push(line.trim());
-      }
+      const trimmed = line.trim();
+      if (trimmed === "")
+        continue;
+      if (this.isSeparatorLine(trimmed))
+        continue;
+      previewLines.push(trimmed);
     }
     return previewLines.join("\n");
+  }
+  /** 判断是否为分隔线（如 ----------------------------上午-------------------------------） */
+  isSeparatorLine(line) {
+    if (/-{10,}/.test(line))
+      return true;
+    return false;
   }
   /**
    * 获取指定日期的未完成待办列表（- [ ] 开头的条目）
@@ -1760,13 +1769,17 @@ var CalendarView = class extends import_obsidian4.ItemView {
             const lines = [];
             if (preview.length > 0) {
               lines.push("\u{1F4C4} \u5DE5\u4F5C\u8BB0\u5F55\uFF1A");
-              lines.push(...preview);
+              for (const p of preview.split("\n")) {
+                lines.push(p.length > 24 ? p.substring(0, 22) + "\u2026" : p);
+              }
             }
             if (todos.length > 0) {
               lines.push("");
               lines.push(`\u2610 \u5F85\u529E\uFF08${todos.length}\uFF09\uFF1A`);
-              for (const t of todos)
-                lines.push(`  \u2610 ${t.text}`);
+              for (const t of todos) {
+                const text = `  \u2610 ${t.text}`;
+                lines.push(text.length > 24 ? text.substring(0, 22) + "\u2026" : text);
+              }
             }
             if (lines.length === 0) {
               lines.push("\uFF08\u65E0\u8BB0\u5F55\uFF09");

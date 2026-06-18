@@ -1220,12 +1220,21 @@ export class FileManager {
     for (let i = headingLine + 1; i < lines.length && previewLines.length < maxLines; i++) {
       const line = lines[i];
       if (line.startsWith("## ") || line.startsWith("### ") || line.startsWith("#### ")) break;
-      if (line.trim() !== "") {
-        previewLines.push(line.trim());
-      }
+      const trimmed = line.trim();
+      if (trimmed === "") continue;
+      // 跳过分隔线（如 ----------------------------上午-------------------------------）
+      if (this.isSeparatorLine(trimmed)) continue;
+      previewLines.push(trimmed);
     }
 
     return previewLines.join("\n");
+  }
+
+  /** 判断是否为分隔线（如 ----------------------------上午-------------------------------） */
+  private isSeparatorLine(line: string): boolean {
+    // 连续 10+ 个短横线即视为分隔线
+    if (/-{10,}/.test(line)) return true;
+    return false;
   }
 
   /**
