@@ -342,10 +342,8 @@ export default class WorkLogPlugin extends Plugin {
       return;
     }
 
-    // 移动端：用分屏（split），日历在下方显示；桌面端：右侧边栏
-    const leaf = this.app.isMobile
-      ? this.app.workspace.getLeaf("split")
-      : this.app.workspace.getRightLeaf(false);
+    // 移动端和桌面端都放右侧边栏，移动端通过滑动展开
+    const leaf = this.app.workspace.getRightLeaf(false);
 
     if (leaf) {
       await leaf.setViewState({ type: CALENDAR_VIEW_TYPE, active: true });

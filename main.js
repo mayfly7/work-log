@@ -2414,7 +2414,7 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
         this.app.workspace.revealLeaf(existing[0]);
       return;
     }
-    const leaf = this.app.isMobile ? this.app.workspace.getLeaf("split") : this.app.workspace.getRightLeaf(false);
+    const leaf = this.app.workspace.getRightLeaf(false);
     if (leaf) {
       await leaf.setViewState({ type: CALENDAR_VIEW_TYPE, active: true });
       if (reveal)
