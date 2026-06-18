@@ -1,5 +1,15 @@
 # 更新日志 / Changelog
 
+## [1.0.6] - 2026-06-18
+
+### 修复问题
+
+- **Win 端日历 tooltip 不自动消失**：`render()` 开头调用 `removeTooltip()`，防止光标同步触发重渲染时销毁格子导致 `mouseleave` 不触发；同时在 `onOpen()` 注册 `scroll` 捕获事件清除 tooltip
+- **tooltip 被窗口边缘截断**：`max-width` 从 260px 扩展到 320px；`showTooltip()` 增加视口边界检测，先隐藏挂载测量尺寸后再修正位置（右侧溢出翻转到左侧、下方溢出翻转到上方）
+- **手机端长按预览分隔线混乱**：`getDayPreview` 新增 `isSeparatorLine()` 过滤，连续 10+ 个 `-` 的行不显示在预览中；移动端 Notice 预览每行截断至 24 字
+
+---
+
 ## [1.0.5] - 2026-06-12
 
 ### 新增功能

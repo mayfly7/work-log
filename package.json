@@ -1,6 +1,6 @@
 {
   "name": "obsidian-work-log",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Obsidian Work Log Plugin",
   "main": "main.js",
   "scripts": {
