@@ -492,8 +492,8 @@ export class CalendarView extends ItemView {
 
     const tt = document.createElement("div");
     tt.className = "wl-tooltip";
-    tt.style.left = `${e.pageX + 12}px`;
-    tt.style.top = `${e.pageY + 4}px`;
+    // 先设置为不可见，用于测量
+    tt.style.visibility = "hidden";
 
     tt.createDiv({ cls: "wl-tt-title", text: date.format("YYYY-MM-DD") });
 
@@ -513,7 +513,35 @@ export class CalendarView extends ItemView {
       });
     }
 
+    // 先追加到 DOM 测量尺寸
     document.body.appendChild(tt);
+
+    // 延迟一帧获取真实布局尺寸
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    const rect = tt.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let left = e.pageX + 12;
+    let top = e.pageY + 4;
+
+    // 右边界检查：如果超出视口，翻转到鼠标左侧
+    if (left + rect.width > vw - 8) {
+      left = e.pageX - rect.width - 12;
+    }
+    // 左边界检查
+    if (left < 5) left = 5;
+    // 下边界检查：如果超出视口，翻转到鼠标上方
+    if (top + rect.height > vh - 8) {
+      top = e.pageY - rect.height - 10;
+    }
+    // 上边界检查
+    if (top < 5) top = 5;
+
+    tt.style.left = `${left}px`;
+    tt.style.top = `${top}px`;
+    tt.style.visibility = "";
     this.tooltip = tt;
   }
 

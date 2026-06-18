@@ -415,7 +415,8 @@
   border-radius: var(--radius-m);
   box-shadow: var(--shadow-l);
   padding: 8px 12px;
-  max-width: 260px;
+  max-width: 320px;
+  min-width: 180px;
   pointer-events: none;
 }
 

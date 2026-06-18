@@ -1947,8 +1947,7 @@ ${lines.join("\n")}`, 5e3);
       return;
     const tt = document.createElement("div");
     tt.className = "wl-tooltip";
-    tt.style.left = `${e.pageX + 12}px`;
-    tt.style.top = `${e.pageY + 4}px`;
+    tt.style.visibility = "hidden";
     tt.createDiv({ cls: "wl-tt-title", text: date.format("YYYY-MM-DD") });
     if (todos.length > 0) {
       const todoSection = tt.createDiv("wl-tt-todos");
@@ -1963,6 +1962,25 @@ ${lines.join("\n")}`, 5e3);
       });
     }
     document.body.appendChild(tt);
+    await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    const rect = tt.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let left = e.pageX + 12;
+    let top = e.pageY + 4;
+    if (left + rect.width > vw - 8) {
+      left = e.pageX - rect.width - 12;
+    }
+    if (left < 5)
+      left = 5;
+    if (top + rect.height > vh - 8) {
+      top = e.pageY - rect.height - 10;
+    }
+    if (top < 5)
+      top = 5;
+    tt.style.left = `${left}px`;
+    tt.style.top = `${top}px`;
+    tt.style.visibility = "";
     this.tooltip = tt;
   }
   removeTooltip() {
