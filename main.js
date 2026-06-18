@@ -732,7 +732,14 @@ var FileManager = class {
       }
       headerDone = true;
       if (line.startsWith("#### ")) {
-        this.saveDateContent(dateContent, currentDateKey, currentContent);
+        if (currentDateKey && currentContent.length > 0) {
+          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+            currentContent.pop();
+          }
+          if (currentContent.length > 0) {
+            dateContent.set(currentDateKey, currentContent);
+          }
+        }
         const m = parseDayTitle(line, this.settings.dateFormat);
         currentDateKey = m ? m.format("YYYY-MM-DD") : null;
         currentContent = [];
@@ -745,14 +752,28 @@ var FileManager = class {
           currentContent.push(line.substring(colonIdx + 1).trim());
         }
       } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
-        this.saveDateContent(dateContent, currentDateKey, currentContent);
+        if (currentDateKey && currentContent.length > 0) {
+          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+            currentContent.pop();
+          }
+          if (currentContent.length > 0) {
+            dateContent.set(currentDateKey, currentContent);
+          }
+        }
         currentDateKey = null;
         currentContent = [];
       } else if (currentDateKey) {
         currentContent.push(line);
       }
     }
-    this.saveDateContent(dateContent, currentDateKey, currentContent);
+    if (currentDateKey && currentContent.length > 0) {
+      while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+        currentContent.pop();
+      }
+      if (currentContent.length > 0) {
+        dateContent.set(currentDateKey, currentContent);
+      }
+    }
     const newLines = [...headerLines];
     if (newLines.length > 0 && newLines[newLines.length - 1].trim() !== "") {
       newLines.push("");
@@ -805,25 +826,33 @@ var FileManager = class {
   /**
    * 迁移日期格式：把文件中旧格式的日期标题替换为当前设置的日期格式
    */
-  /**
-   * 迁移日期格式：使用全量重建方式，彻底消除因格式切换导致的重复日期标题
-   */
   async migrateDateFormat(year) {
-    await this.repairYearStructure(year);
-    new import_obsidian3.Notice(`${year} \u5E74\u65E5\u671F\u683C\u5F0F\u5DF2\u8FC1\u79FB\u5E76\u6E05\u7406\u5B8C\u6210`);
-  }
-  /** 将日期内容安全存入 Map，重复日期（格式切换残留）只保留首次遇到的 */
-  saveDateContent(dateContent, key, content) {
-    if (!key)
-      return;
-    while (content.length > 0 && content[content.length - 1].trim() === "") {
-      content.pop();
+    const file = await this.getOrCreateFile(year);
+    const content = await this.app.vault.read(file);
+    const lines = content.split("\n");
+    let changed = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line.startsWith("#### "))
+        continue;
+      const m = parseDayTitle(line, this.settings.dateFormat);
+      if (!m)
+        continue;
+      const newTitle = `#### ${formatDayTitle(m, this.settings)}`;
+      const weekdayPattern = /^(####\s+).+?\s+(星期[一二三四五六日]|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/;
+      const newLine = line.replace(weekdayPattern, newTitle);
+      if (newLine !== line) {
+        lines[i] = newLine;
+        changed++;
+      }
     }
-    if (content.length === 0)
-      return;
-    if (dateContent.has(key))
-      return;
-    dateContent.set(key, content);
+    if (changed > 0) {
+      await this.app.vault.modify(file, lines.join("\n"));
+      this.invalidateCache(year);
+      new import_obsidian3.Notice(`${year} \u5E74\u5171\u8FC1\u79FB ${changed} \u6761\u65E5\u671F\u6807\u9898\u4E3A ${this.settings.dateFormat} \u683C\u5F0F`);
+    } else {
+      new import_obsidian3.Notice(`${year} \u5E74\u65E0\u9700\u8FC1\u79FB\uFF0C\u6240\u6709\u65E5\u671F\u6807\u9898\u5DF2\u662F ${this.settings.dateFormat} \u683C\u5F0F`);
+    }
   }
   /**
    * 确保文件包含从年初到今天的日期结构（up_to_today 模式）
@@ -847,7 +876,14 @@ var FileManager = class {
       }
       headerDone = true;
       if (line.startsWith("#### ")) {
-        this.saveDateContent(dateContent, currentDateKey, currentContent);
+        if (currentDateKey && currentContent.length > 0) {
+          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+            currentContent.pop();
+          }
+          if (currentContent.length > 0) {
+            dateContent.set(currentDateKey, currentContent);
+          }
+        }
         const m = parseDayTitle(line, this.settings.dateFormat);
         currentDateKey = m ? m.format("YYYY-MM-DD") : null;
         currentContent = [];
@@ -860,14 +896,28 @@ var FileManager = class {
           currentContent.push(line.substring(colonIdx + 1).trim());
         }
       } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
-        this.saveDateContent(dateContent, currentDateKey, currentContent);
+        if (currentDateKey && currentContent.length > 0) {
+          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+            currentContent.pop();
+          }
+          if (currentContent.length > 0) {
+            dateContent.set(currentDateKey, currentContent);
+          }
+        }
         currentDateKey = null;
         currentContent = [];
       } else if (currentDateKey) {
         currentContent.push(line);
       }
     }
-    this.saveDateContent(dateContent, currentDateKey, currentContent);
+    if (currentDateKey && currentContent.length > 0) {
+      while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+        currentContent.pop();
+      }
+      if (currentContent.length > 0) {
+        dateContent.set(currentDateKey, currentContent);
+      }
+    }
     const newLines = [...headerLines];
     if (newLines.length > 0 && newLines[newLines.length - 1].trim() !== "") {
       newLines.push("");
@@ -959,7 +1009,14 @@ var FileManager = class {
       }
       headerDone = true;
       if (line.startsWith("#### ")) {
-        this.saveDateContent(dateContent, currentDateKey, currentContent);
+        if (currentDateKey && currentContent.length > 0) {
+          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+            currentContent.pop();
+          }
+          if (currentContent.length > 0) {
+            dateContent.set(currentDateKey, currentContent);
+          }
+        }
         const m = parseDayTitle(line, this.settings.dateFormat);
         currentDateKey = m ? m.format("YYYY-MM-DD") : null;
         currentContent = [];
@@ -972,14 +1029,28 @@ var FileManager = class {
           currentContent.push(line.substring(colonIdx + 1).trim());
         }
       } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
-        this.saveDateContent(dateContent, currentDateKey, currentContent);
+        if (currentDateKey && currentContent.length > 0) {
+          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+            currentContent.pop();
+          }
+          if (currentContent.length > 0) {
+            dateContent.set(currentDateKey, currentContent);
+          }
+        }
         currentDateKey = null;
         currentContent = [];
       } else if (currentDateKey) {
         currentContent.push(line);
       }
     }
-    this.saveDateContent(dateContent, currentDateKey, currentContent);
+    if (currentDateKey && currentContent.length > 0) {
+      while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+        currentContent.pop();
+      }
+      if (currentContent.length > 0) {
+        dateContent.set(currentDateKey, currentContent);
+      }
+    }
     const newLines = [...headerLines];
     if (newLines.length > 0 && newLines[newLines.length - 1].trim() !== "") {
       newLines.push("");
