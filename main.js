@@ -863,36 +863,120 @@ var FileManager = class {
     const today = (0, import_obsidian3.moment)();
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
-    const existingDays = /* @__PURE__ */ new Set();
+    const groups = buildYearStructure(year, this.settings);
+    const dateContent = /* @__PURE__ */ new Map();
+    const headerLines = [];
+    let currentDateKey = null;
+    let currentContent = [];
+    let headerDone = false;
     for (const line of lines) {
+      if (!headerDone && !line.startsWith("## ")) {
+        headerLines.push(line);
+        continue;
+      }
+      headerDone = true;
       if (line.startsWith("#### ")) {
+        if (currentDateKey && currentContent.length > 0) {
+          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+            currentContent.pop();
+          }
+          if (currentContent.length > 0) {
+            dateContent.set(currentDateKey, currentContent);
+          }
+        }
         const m = parseDayTitle(line, this.settings.dateFormat);
-        if (m)
-          existingDays.add(m.format("YYYY-MM-DD"));
+        currentDateKey = m ? m.format("YYYY-MM-DD") : null;
+        currentContent = [];
+        const colonIdx = line.indexOf("\uFF1A");
+        if (colonIdx === -1) {
+          const colonIdx2 = line.indexOf(":");
+          if (colonIdx2 !== -1)
+            currentContent.push(line.substring(colonIdx2 + 1).trim());
+        } else {
+          currentContent.push(line.substring(colonIdx + 1).trim());
+        }
+      } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
+        if (currentDateKey && currentContent.length > 0) {
+          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+            currentContent.pop();
+          }
+          if (currentContent.length > 0) {
+            dateContent.set(currentDateKey, currentContent);
+          }
+        }
+        currentDateKey = null;
+        currentContent = [];
+      } else if (currentDateKey) {
+        currentContent.push(line);
       }
     }
-    const groups = buildYearStructure(year, this.settings);
-    let repaired = 0;
+    if (currentDateKey && currentContent.length > 0) {
+      while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+        currentContent.pop();
+      }
+      if (currentContent.length > 0) {
+        dateContent.set(currentDateKey, currentContent);
+      }
+    }
+    const newLines = [...headerLines];
+    if (newLines.length > 0 && newLines[newLines.length - 1].trim() !== "") {
+      newLines.push("");
+    }
+    let addedCount = 0;
     for (const mg of groups) {
+      const visibleWeeks = [];
       for (const wg of mg.weeks) {
-        for (const day of wg.days) {
+        const daysToInclude = wg.days.filter(
+          (d) => !d.isAfter(today, "day")
+        );
+        if (daysToInclude.length > 0) {
+          visibleWeeks.push({ wg, days: daysToInclude });
+        }
+      }
+      if (visibleWeeks.length === 0)
+        continue;
+      newLines.push(`## ${formatMonthHeading(mg.month)}`);
+      newLines.push("");
+      for (const { wg, days: daysToInclude } of visibleWeeks) {
+        newLines.push(`### ${formatWeekTitle(wg, year)}`);
+        newLines.push("");
+        for (const day of daysToInclude) {
           const dateKey = day.format("YYYY-MM-DD");
-          if (year === today.year() && day.isAfter(today, "day"))
-            break;
-          if (existingDays.has(dateKey))
-            continue;
-          await this.insertMissingDateBlock(file, day);
-          repaired++;
-          await this.getDateLineMap(file);
-          const cm = await this.buildCache(file);
-          await this.sleep(50);
+          const heading = `#### ${formatDayTitle(day, this.settings)}`;
+          const dc = dateContent.get(dateKey);
+          if (!dc || dc.length === 0) {
+            addedCount++;
+          }
+          newLines.push(heading);
+          if (dc && dc.length > 0) {
+            if (dc.length === 1 && dc[0].trim() !== "" && !dc[0].trim().startsWith("- ") && !dc[0].trim().startsWith("- [") && !dc[0].trim().startsWith("-[")) {
+              newLines[newLines.length - 1] = heading + "\uFF1A" + dc[0].trim();
+            } else {
+              for (const cl of dc) {
+                newLines.push(cl);
+              }
+            }
+            if (newLines[newLines.length - 1].trim() !== "") {
+              newLines.push("");
+            }
+          } else {
+            newLines.push("");
+          }
         }
       }
     }
-    this.invalidateCache(year);
-    if (repaired > 0) {
-      new import_obsidian3.Notice(`${year} \u5E74\u5DF2\u8865\u5145 ${repaired} \u5929\u65E5\u671F\u7ED3\u6784`);
+    while (newLines.length > 0 && newLines[newLines.length - 1].trim() === "") {
+      newLines.pop();
     }
+    newLines.push("");
+    const newContent = newLines.join("\n");
+    if (newContent !== content) {
+      await this.app.vault.modify(file, newContent);
+      if (addedCount > 0) {
+        new import_obsidian3.Notice(`${year} \u5E74\u5DF2\u8865\u5145 ${addedCount} \u5929\u65E5\u671F\u7ED3\u6784`);
+      }
+    }
+    this.invalidateCache(year);
   }
   sleep(ms) {
     return new Promise((r) => setTimeout(r, ms));
