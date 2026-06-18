@@ -304,12 +304,24 @@ function buildYearStructure(year, settings) {
     weekMap.get(key).weekIndex = idx + 1;
   });
   const monthGroups = [];
+  const includedWeeks = /* @__PURE__ */ new Set();
   for (let month = 1; month <= 12; month++) {
     const keys = monthWeekKeys.get(month);
     if (!keys)
       continue;
     const sortedKeys = Array.from(keys).sort();
-    const weeks = sortedKeys.map((k) => weekMap.get(k)).filter(Boolean);
+    const weeks = [];
+    for (const k of sortedKeys) {
+      if (includedWeeks.has(k))
+        continue;
+      const wg = weekMap.get(k);
+      if (wg) {
+        includedWeeks.add(k);
+        weeks.push(wg);
+      }
+    }
+    if (weeks.length === 0)
+      continue;
     monthGroups.push({
       month,
       monthName: getMonthName(month),
