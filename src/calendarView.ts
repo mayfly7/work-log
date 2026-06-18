@@ -38,6 +38,8 @@ export class CalendarView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
+    // 滚动时清除 tooltip（tooltip 基于 pageX/pageY 定位，滚动后位置会错）
+    this.registerDomEvent(document, "scroll", () => this.removeTooltip(), true);
     await this.refresh();
   }
 
@@ -55,6 +57,8 @@ export class CalendarView extends ItemView {
   }
 
   private async render(): Promise<void> {
+    // 重新渲染前先清除残留的 tooltip，防止 re-render 销毁格子后 mouseleave 不触发
+    this.removeTooltip();
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
     container.addClass("work-log-calendar");

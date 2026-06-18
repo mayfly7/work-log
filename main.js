@@ -1563,6 +1563,7 @@ var CalendarView = class extends import_obsidian4.ItemView {
     return "calendar-days";
   }
   async onOpen() {
+    this.registerDomEvent(document, "scroll", () => this.removeTooltip(), true);
     await this.refresh();
   }
   async onClose() {
@@ -1576,6 +1577,7 @@ var CalendarView = class extends import_obsidian4.ItemView {
     await this.render();
   }
   async render() {
+    this.removeTooltip();
     const container = this.containerEl.children[1];
     container.empty();
     container.addClass("work-log-calendar");
