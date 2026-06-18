@@ -678,41 +678,138 @@ export class FileManager {
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
 
-    // 收集已有的日期
-    const existingDays = new Set<string>();
+    const groups = buildYearStructure(year, this.settings);
+
+    // ── 解析已有内容（与 repairYearStructure 相同逻辑）──
+    const dateContent = new Map<string, string[]>();
+    const headerLines: string[] = [];
+    let currentDateKey: string | null = null;
+    let currentContent: string[] = [];
+    let headerDone = false;
+
     for (const line of lines) {
+      if (!headerDone && !line.startsWith("## ")) {
+        headerLines.push(line);
+        continue;
+      }
+      headerDone = true;
+
       if (line.startsWith("#### ")) {
+        if (currentDateKey && currentContent.length > 0) {
+          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+            currentContent.pop();
+          }
+          if (currentContent.length > 0) {
+            dateContent.set(currentDateKey, currentContent);
+          }
+        }
         const m = parseDayTitle(line, this.settings.dateFormat);
-        if (m) existingDays.add(m.format("YYYY-MM-DD"));
+        currentDateKey = m ? m.format("YYYY-MM-DD") : null;
+        currentContent = [];
+        const colonIdx = line.indexOf("：");
+        if (colonIdx === -1) {
+          const colonIdx2 = line.indexOf(":");
+          if (colonIdx2 !== -1) currentContent.push(line.substring(colonIdx2 + 1).trim());
+        } else {
+          currentContent.push(line.substring(colonIdx + 1).trim());
+        }
+      } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
+        if (currentDateKey && currentContent.length > 0) {
+          while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+            currentContent.pop();
+          }
+          if (currentContent.length > 0) {
+            dateContent.set(currentDateKey, currentContent);
+          }
+        }
+        currentDateKey = null;
+        currentContent = [];
+      } else if (currentDateKey) {
+        currentContent.push(line);
+      }
+    }
+    if (currentDateKey && currentContent.length > 0) {
+      while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
+        currentContent.pop();
+      }
+      if (currentContent.length > 0) {
+        dateContent.set(currentDateKey, currentContent);
       }
     }
 
-    // 需要补充的日期：从1月1日到今天，且当年
-    const groups = buildYearStructure(year, this.settings);
-    let repaired = 0;
+    // ── 重建文件（只到今天的日期）──
+    const newLines: string[] = [...headerLines];
+    if (newLines.length > 0 && newLines[newLines.length - 1].trim() !== "") {
+      newLines.push("");
+    }
+
+    let addedCount = 0;
 
     for (const mg of groups) {
+      const visibleWeeks: { wg: WeekGroup; days: moment.Moment[] }[] = [];
       for (const wg of mg.weeks) {
-        for (const day of wg.days) {
-          const dateKey = day.format("YYYY-MM-DD");
-          // 只处理到今天的日期
-          if (year === today.year() && day.isAfter(today, "day")) break;
-          if (existingDays.has(dateKey)) continue;
+        const daysToInclude = wg.days.filter(
+          (d) => !d.isAfter(today, "day")
+        );
+        if (daysToInclude.length > 0) {
+          visibleWeeks.push({ wg, days: daysToInclude });
+        }
+      }
+      if (visibleWeeks.length === 0) continue;
 
-          await this.insertMissingDateBlock(file, day);
-          repaired++;
-          await this.getDateLineMap(file); // 刷新缓存
-          const cm = await this.buildCache(file); // 重建缓存
-          // 缓存已在 insertMissingDateBlock 中失效，重建后继续
-          await this.sleep(50);
+      newLines.push(`## ${formatMonthHeading(mg.month)}`);
+      newLines.push("");
+
+      for (const { wg, days: daysToInclude } of visibleWeeks) {
+        newLines.push(`### ${formatWeekTitle(wg, year)}`);
+        newLines.push("");
+
+        for (const day of daysToInclude) {
+          const dateKey = day.format("YYYY-MM-DD");
+          const heading = `#### ${formatDayTitle(day, this.settings)}`;
+          const dc = dateContent.get(dateKey);
+
+          if (!dc || dc.length === 0) {
+            addedCount++;
+          }
+
+          newLines.push(heading);
+
+          if (dc && dc.length > 0) {
+            if (dc.length === 1 && dc[0].trim() !== "" &&
+                !dc[0].trim().startsWith("- ") &&
+                !dc[0].trim().startsWith("- [") &&
+                !dc[0].trim().startsWith("-[")) {
+              newLines[newLines.length - 1] = heading + "：" + dc[0].trim();
+            } else {
+              for (const cl of dc) {
+                newLines.push(cl);
+              }
+            }
+            if (newLines[newLines.length - 1].trim() !== "") {
+              newLines.push("");
+            }
+          } else {
+            newLines.push("");
+          }
         }
       }
     }
 
-    this.invalidateCache(year);
-    if (repaired > 0) {
-      new Notice(`${year} 年已补充 ${repaired} 天日期结构`);
+    while (newLines.length > 0 && newLines[newLines.length - 1].trim() === "") {
+      newLines.pop();
     }
+    newLines.push("");
+
+    const newContent = newLines.join("\n");
+    if (newContent !== content) {
+      await this.app.vault.modify(file, newContent);
+      if (addedCount > 0) {
+        new Notice(`${year} 年已补充 ${addedCount} 天日期结构`);
+      }
+    }
+
+    this.invalidateCache(year);
   }
 
   private sleep(ms: number): Promise<void> {
