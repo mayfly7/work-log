@@ -204,7 +204,8 @@ export default class WorkLogPlugin extends Plugin {
       // 否则 Obsidian 恢复布局后会再创建一个，导致出现两个视图
       await this.delay(500);
       if (!this.app.workspace.getLeavesOfType(CALENDAR_VIEW_TYPE).length) {
-        await this.activateCalendarView(false);
+        // 移动端自动展开右侧边栏，桌面端不抢焦点
+        await this.activateCalendarView(this.app.isMobile);
       }
     });
 

@@ -2304,7 +2304,7 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
       }
       await this.delay(500);
       if (!this.app.workspace.getLeavesOfType(CALENDAR_VIEW_TYPE).length) {
-        await this.activateCalendarView(false);
+        await this.activateCalendarView(this.app.isMobile);
       }
     });
     this.registerInterval(
