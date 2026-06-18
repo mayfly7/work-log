@@ -304,7 +304,6 @@ function buildYearStructure(year, settings) {
     weekMap.get(key).weekIndex = idx + 1;
   });
   const monthGroups = [];
-  const includedWeeks = /* @__PURE__ */ new Set();
   for (let month = 1; month <= 12; month++) {
     const keys = monthWeekKeys.get(month);
     if (!keys)
@@ -312,13 +311,16 @@ function buildYearStructure(year, settings) {
     const sortedKeys = Array.from(keys).sort();
     const weeks = [];
     for (const k of sortedKeys) {
-      if (includedWeeks.has(k))
-        continue;
       const wg = weekMap.get(k);
-      if (wg) {
-        includedWeeks.add(k);
-        weeks.push(wg);
-      }
+      const monthDays = wg.days.filter((d) => d.month() + 1 === month);
+      if (monthDays.length === 0)
+        continue;
+      weeks.push({
+        weekIndex: wg.weekIndex,
+        weekStart: wg.weekStart.clone(),
+        weekEnd: wg.weekEnd.clone(),
+        days: monthDays
+      });
     }
     if (weeks.length === 0)
       continue;

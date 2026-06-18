@@ -103,9 +103,8 @@ export function buildYearStructure(year: number, settings: WorkLogSettings): Mon
     weekMap.get(key)!.weekIndex = idx + 1;
   });
 
-  // 构建月份分组（跨月周只归属到第一个月）
+  // 构建月份分组（跨月周按月份拆分天数）
   const monthGroups: MonthGroup[] = [];
-  const includedWeeks = new Set<string>();
   for (let month = 1; month <= 12; month++) {
     const keys = monthWeekKeys.get(month);
     if (!keys) continue;
@@ -113,12 +112,16 @@ export function buildYearStructure(year: number, settings: WorkLogSettings): Mon
     const sortedKeys = Array.from(keys).sort();
     const weeks: WeekGroup[] = [];
     for (const k of sortedKeys) {
-      if (includedWeeks.has(k)) continue; // 跨月周已在上月输出
-      const wg = weekMap.get(k);
-      if (wg) {
-        includedWeeks.add(k);
-        weeks.push(wg);
-      }
+      const wg = weekMap.get(k)!;
+      // 只保留属于当前月的日期
+      const monthDays = wg.days.filter((d) => d.month() + 1 === month);
+      if (monthDays.length === 0) continue;
+      weeks.push({
+        weekIndex: wg.weekIndex,
+        weekStart: wg.weekStart.clone(),
+        weekEnd: wg.weekEnd.clone(),
+        days: monthDays,
+      });
     }
     if (weeks.length === 0) continue;
 
