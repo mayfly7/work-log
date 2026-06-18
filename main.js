@@ -812,18 +812,18 @@ var FileManager = class {
     await this.repairYearStructure(year);
     new import_obsidian3.Notice(`${year} \u5E74\u65E5\u671F\u683C\u5F0F\u5DF2\u8FC1\u79FB\u5E76\u6E05\u7406\u5B8C\u6210`);
   }
-  /** 将日期内容安全存入 Map，重复日期（格式切换残留）自动合并 */
+  /** 将日期内容安全存入 Map，重复日期（格式切换残留）只保留首次遇到的 */
   saveDateContent(dateContent, key, content) {
+    if (!key)
+      return;
     while (content.length > 0 && content[content.length - 1].trim() === "") {
       content.pop();
     }
     if (content.length === 0)
       return;
-    if (dateContent.has(key)) {
-      dateContent.get(key).push(...content);
-    } else {
-      dateContent.set(key, content);
-    }
+    if (dateContent.has(key))
+      return;
+    dateContent.set(key, content);
   }
   /**
    * 确保文件包含从年初到今天的日期结构（up_to_today 模式）

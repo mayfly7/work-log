@@ -622,19 +622,17 @@ export class FileManager {
     new Notice(`${year} 年日期格式已迁移并清理完成`);
   }
 
-  /** 将日期内容安全存入 Map，重复日期（格式切换残留）自动合并 */
+  /** 将日期内容安全存入 Map，重复日期（格式切换残留）只保留首次遇到的 */
   private saveDateContent(dateContent: Map<string, string[]>, key: string, content: string[]): void {
+    if (!key) return;
     // 去掉末尾空行
     while (content.length > 0 && content[content.length - 1].trim() === "") {
       content.pop();
     }
     if (content.length === 0) return;
-    if (dateContent.has(key)) {
-      // 相同日期存在重复标题（格式切换导致），合并内容
-      dateContent.get(key)!.push(...content);
-    } else {
-      dateContent.set(key, content);
-    }
+    // 已有内容则忽略后续重复标题下的内容（格式切换残留）
+    if (dateContent.has(key)) return;
+    dateContent.set(key, content);
   }
 
   /**
