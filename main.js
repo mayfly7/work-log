@@ -1279,9 +1279,6 @@ var FileManager = class {
     if (!found) {
       if (label === "\u5168\u5929") {
         insertIdx = headingLine + 1;
-        while (insertIdx < lines.length && !lines[insertIdx].startsWith("## ") && !lines[insertIdx].startsWith("### ") && !lines[insertIdx].startsWith("#### ")) {
-          insertIdx++;
-        }
       }
       if (isSession) {
         lines.splice(insertIdx, 0, entry, "");
