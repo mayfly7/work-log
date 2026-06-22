@@ -1153,6 +1153,16 @@ export class FileManager {
     }
 
     if (!found) {
+      // 「全天」始终插在日期块末尾（上下午之后）
+      if (label === "全天") {
+        insertIdx = headingLine + 1;
+        while (insertIdx < lines.length &&
+               !lines[insertIdx].startsWith("## ") &&
+               !lines[insertIdx].startsWith("### ") &&
+               !lines[insertIdx].startsWith("#### ")) {
+          insertIdx++;
+        }
+      }
       if (isSession) {
         // 上午/下午：插入分隔线 + 空行
         lines.splice(insertIdx, 0, entry, "");
