@@ -715,7 +715,11 @@ export class FileManager {
       await this.app.vault.modify(file, content);
       this.invalidateCache(year);
       // 清理后自动重建，消除残留的重复日期
-      await this.repairYearStructure(year);
+      if (this.settings.generationMode === "up_to_today") {
+        await this.ensureUpToToday(year);
+      } else {
+        await this.repairYearStructure(year);
+      }
     }
     return removed;
   }

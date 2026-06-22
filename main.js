@@ -913,7 +913,11 @@ var FileManager = class {
     if (removed > 0) {
       await this.app.vault.modify(file, content);
       this.invalidateCache(year);
-      await this.repairYearStructure(year);
+      if (this.settings.generationMode === "up_to_today") {
+        await this.ensureUpToToday(year);
+      } else {
+        await this.repairYearStructure(year);
+      }
     }
     return removed;
   }
