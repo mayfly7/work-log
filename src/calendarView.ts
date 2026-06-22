@@ -383,6 +383,15 @@ export class CalendarView extends ItemView {
         await this.render();
       });
 
+      const fullBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-full" });
+      fullBtn.textContent = "📋 全天";
+      fullBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        popup.style.display = "none";
+        await this.plugin.fileManager.insertSessionLabel(getTarget(), "全天");
+        await this.render();
+      });
+
       const pmBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-pm" });
       pmBtn.textContent = "🌙 下午";
       pmBtn.addEventListener("click", async (e) => {

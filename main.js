@@ -1967,6 +1967,14 @@ ${lines.join("\n")}`, 5e3);
         await this.plugin.fileManager.insertSessionLabel(getTarget(), "\u4E0A\u5348");
         await this.render();
       });
+      const fullBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-full" });
+      fullBtn.textContent = "\u{1F4CB} \u5168\u5929";
+      fullBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        popup.style.display = "none";
+        await this.plugin.fileManager.insertSessionLabel(getTarget(), "\u5168\u5929");
+        await this.render();
+      });
       const pmBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-pm" });
       pmBtn.textContent = "\u{1F319} \u4E0B\u5348";
       pmBtn.addEventListener("click", async (e) => {
