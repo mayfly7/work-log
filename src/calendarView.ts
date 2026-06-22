@@ -368,12 +368,50 @@ export class CalendarView extends ItemView {
         await this.render();
       });
     } else {
-      // 上午/下午模式：点击直接添加全天
-      btn.addEventListener("click", async (e) => {
+      // 上午/下午模式：首次点击弹出上下午选项，再次点击添加全天
+      const popup = actionBar.createDiv("wl-session-popup");
+      popup.style.display = "none";
+
+      const amBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-am" });
+      amBtn.textContent = "☀ 上午";
+      amBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
-        await this.plugin.fileManager.insertSessionLabel(getTarget(), "全天");
+        popup.style.display = "none";
+        await this.plugin.fileManager.insertSessionLabel(getTarget(), "上午");
         await this.render();
       });
+
+      const pmBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-pm" });
+      pmBtn.textContent = "🌙 下午";
+      pmBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        popup.style.display = "none";
+        await this.plugin.fileManager.insertSessionLabel(getTarget(), "下午");
+        await this.render();
+      });
+
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (popup.style.display !== "none") {
+          // 再次点击：关闭弹窗，添加全天
+          popup.style.display = "none";
+          await this.plugin.fileManager.insertSessionLabel(getTarget(), "全天");
+          await this.render();
+        } else {
+          popup.style.display = "flex";
+        }
+      });
+
+      // Click/touch outside to close
+      const closeHandler = (ev: Event) => {
+        if (!actionBar.contains(ev.target as Node)) {
+          popup.style.display = "none";
+        }
+      };
+      document.addEventListener("click", closeHandler);
+      if (this.app.isMobile) {
+        document.addEventListener("touchstart", closeHandler, { passive: true });
+      }
     }
 
     // ─── 添加待办按钮 ────────────────────────────

@@ -1955,11 +1955,43 @@ ${lines.join("\n")}`, 5e3);
         await this.render();
       });
     } else {
-      btn.addEventListener("click", async (e) => {
+      const popup = actionBar.createDiv("wl-session-popup");
+      popup.style.display = "none";
+      const amBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-am" });
+      amBtn.textContent = "\u2600 \u4E0A\u5348";
+      amBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
-        await this.plugin.fileManager.insertSessionLabel(getTarget(), "\u5168\u5929");
+        popup.style.display = "none";
+        await this.plugin.fileManager.insertSessionLabel(getTarget(), "\u4E0A\u5348");
         await this.render();
       });
+      const pmBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-pm" });
+      pmBtn.textContent = "\u{1F319} \u4E0B\u5348";
+      pmBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        popup.style.display = "none";
+        await this.plugin.fileManager.insertSessionLabel(getTarget(), "\u4E0B\u5348");
+        await this.render();
+      });
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (popup.style.display !== "none") {
+          popup.style.display = "none";
+          await this.plugin.fileManager.insertSessionLabel(getTarget(), "\u5168\u5929");
+          await this.render();
+        } else {
+          popup.style.display = "flex";
+        }
+      });
+      const closeHandler = (ev) => {
+        if (!actionBar.contains(ev.target)) {
+          popup.style.display = "none";
+        }
+      };
+      document.addEventListener("click", closeHandler);
+      if (this.app.isMobile) {
+        document.addEventListener("touchstart", closeHandler, { passive: true });
+      }
     }
     const todoBtn = actionBar.createEl("button", { cls: "wl-todo-btn" });
     todoBtn.textContent = "\u2610 \u6DFB\u52A0\u5F85\u529E";
