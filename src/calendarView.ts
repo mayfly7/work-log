@@ -12,7 +12,6 @@ export class CalendarView extends ItemView {
   private selectedDate: moment.Moment | null = null;
   private tooltip: HTMLElement | null = null;
   private actionBtnEl: HTMLElement | null = null;
-  private actionPopupEl: HTMLElement | null = null;
   /** 用户最后一次手动选中日期的时间戳，用于防止光标同步立即覆盖 */
   lastUserSelectTime: number = 0;
 
@@ -369,55 +368,12 @@ export class CalendarView extends ItemView {
         await this.render();
       });
     } else {
-      // 上午/下午模式：弹出选项
-      const popup = actionBar.createDiv("wl-session-popup");
-      popup.style.display = "none";
-      this.actionPopupEl = popup;
-
-      const amBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-am" });
-      amBtn.textContent = "☀ 上午";
-      amBtn.addEventListener("click", async (e) => {
+      // 上午/下午模式：点击直接添加全天
+      btn.addEventListener("click", async (e) => {
         e.stopPropagation();
-        popup.style.display = "none";
-        await this.plugin.fileManager.insertSessionLabel(getTarget(), "上午");
-        await this.render();
-      });
-
-      const fullBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-full" });
-      fullBtn.textContent = "📋 全天";
-      fullBtn.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        popup.style.display = "none";
         await this.plugin.fileManager.insertSessionLabel(getTarget(), "全天");
         await this.render();
       });
-
-      const pmBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-pm" });
-      pmBtn.textContent = "🌙 下午";
-      pmBtn.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        popup.style.display = "none";
-        await this.plugin.fileManager.insertSessionLabel(getTarget(), "下午");
-        await this.render();
-      });
-
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const isVisible = popup.style.display !== "none";
-        popup.style.display = isVisible ? "none" : "flex";
-      });
-
-      // Click/touch outside to close
-      const closeHandler = (ev: Event) => {
-        if (!actionBar.contains(ev.target as Node)) {
-          popup.style.display = "none";
-        }
-      };
-      document.addEventListener("click", closeHandler);
-      // 移动端 touchstart 也能关闭
-      if (this.app.isMobile) {
-        document.addEventListener("touchstart", closeHandler, { passive: true });
-      }
     }
 
     // ─── 添加待办按钮 ────────────────────────────

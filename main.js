@@ -1654,7 +1654,6 @@ var CalendarView = class extends import_obsidian4.ItemView {
     this.selectedDate = null;
     this.tooltip = null;
     this.actionBtnEl = null;
-    this.actionPopupEl = null;
     /** 用户最后一次手动选中日期的时间戳，用于防止光标同步立即覆盖 */
     this.lastUserSelectTime = 0;
     this.plugin = plugin;
@@ -1956,47 +1955,11 @@ ${lines.join("\n")}`, 5e3);
         await this.render();
       });
     } else {
-      const popup = actionBar.createDiv("wl-session-popup");
-      popup.style.display = "none";
-      this.actionPopupEl = popup;
-      const amBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-am" });
-      amBtn.textContent = "\u2600 \u4E0A\u5348";
-      amBtn.addEventListener("click", async (e) => {
+      btn.addEventListener("click", async (e) => {
         e.stopPropagation();
-        popup.style.display = "none";
-        await this.plugin.fileManager.insertSessionLabel(getTarget(), "\u4E0A\u5348");
-        await this.render();
-      });
-      const fullBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-full" });
-      fullBtn.textContent = "\u{1F4CB} \u5168\u5929";
-      fullBtn.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        popup.style.display = "none";
         await this.plugin.fileManager.insertSessionLabel(getTarget(), "\u5168\u5929");
         await this.render();
       });
-      const pmBtn = popup.createEl("button", { cls: "wl-session-opt wl-session-pm" });
-      pmBtn.textContent = "\u{1F319} \u4E0B\u5348";
-      pmBtn.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        popup.style.display = "none";
-        await this.plugin.fileManager.insertSessionLabel(getTarget(), "\u4E0B\u5348");
-        await this.render();
-      });
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const isVisible = popup.style.display !== "none";
-        popup.style.display = isVisible ? "none" : "flex";
-      });
-      const closeHandler = (ev) => {
-        if (!actionBar.contains(ev.target)) {
-          popup.style.display = "none";
-        }
-      };
-      document.addEventListener("click", closeHandler);
-      if (this.app.isMobile) {
-        document.addEventListener("touchstart", closeHandler, { passive: true });
-      }
     }
     const todoBtn = actionBar.createEl("button", { cls: "wl-todo-btn" });
     todoBtn.textContent = "\u2610 \u6DFB\u52A0\u5F85\u529E";
