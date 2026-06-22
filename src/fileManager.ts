@@ -635,44 +635,44 @@ export class FileManager {
 
   /**
    * 清理文件中的 Git/Obsidian Git 冲突标记
+   * 成对冲突（ours+theirs）只保留 ours 版本；独立 theirs 块直接丢弃
    */
   async cleanGitConflicts(year: number): Promise<number> {
     const filePath = this.getFilePath(year);
     const file = this.app.vault.getAbstractFileByPath(filePath) as TFile | null;
     if (!file) return 0;
 
-    const content = await this.app.vault.read(file);
-    const lines = content.split("\n");
-    const cleaned: string[] = [];
-    let removed = 0;
+    let content = await this.app.vault.read(file);
+    const originalLength = content.length;
 
-    for (const line of lines) {
-      // 跳过纯冲突标记行
-      const trimmed = line.trim();
-      if (trimmed === '<mark class="conflict ours">' ||
-          trimmed === '<mark class="conflict theirs">' ||
-          trimmed === '</mark>' ||
-          trimmed === '<<<<<<<' ||
-          trimmed === '=======' ||
-          trimmed === '>>>>>>>') {
-        removed++;
-        continue;
-      }
-      // 清理行中的冲突标记（如 `内容</mark><mark class="conflict theirs">`）
-      let cleanedLine = line
-        .replace(/<\/?mark class="conflict (ours|theirs)">/g, "")
-        .replace(/<\/mark>/g, "");
-      if (cleanedLine !== line) removed++;
-      // 清理后如果变成空行，跳过
-      if (cleanedLine.trim() === "" && line.trim() !== "") {
-        removed++;
-        continue;
-      }
-      cleaned.push(cleanedLine);
-    }
+    // 1. 处理成对冲突：保留 ours，丢弃 theirs
+    // <mark class="conflict ours">...</mark><mark class="conflict theirs">...</mark>
+    content = content.replace(
+      /<mark class="conflict ours">([\s\S]*?)<\/mark><mark class="conflict theirs">[\s\S]*?<\/mark>/g,
+      "$1"
+    );
 
+    // 2. 移除残留的 theirs 块（没有对应 ours 的）
+    content = content.replace(
+      /<mark class="conflict theirs">[\s\S]*?<\/mark>/g,
+      ""
+    );
+
+    // 3. 移除残留的 ours 标记（没有对应 theirs 的）
+    content = content.replace(/<mark class="conflict ours">/g, "");
+    content = content.replace(/<\/mark>/g, "");
+
+    // 4. 清理原始 Git 冲突标记
+    content = content.replace(/^<<<<<<<.*\n/gm, "");
+    content = content.replace(/^=======\n/gm, "");
+    content = content.replace(/^>>>>>>>.*\n/gm, "");
+
+    // 5. 清理连续空行（最多保留一个）
+    content = content.replace(/\n{3,}/g, "\n\n");
+
+    const removed = originalLength - content.length;
     if (removed > 0) {
-      await this.app.vault.modify(file, cleaned.join("\n"));
+      await this.app.vault.modify(file, content);
       this.invalidateCache(year);
     }
     return removed;

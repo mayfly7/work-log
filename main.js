@@ -846,33 +846,32 @@ var FileManager = class {
   }
   /**
    * 清理文件中的 Git/Obsidian Git 冲突标记
+   * 成对冲突（ours+theirs）只保留 ours 版本；独立 theirs 块直接丢弃
    */
   async cleanGitConflicts(year) {
     const filePath = this.getFilePath(year);
     const file = this.app.vault.getAbstractFileByPath(filePath);
     if (!file)
       return 0;
-    const content = await this.app.vault.read(file);
-    const lines = content.split("\n");
-    const cleaned = [];
-    let removed = 0;
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (trimmed === '<mark class="conflict ours">' || trimmed === '<mark class="conflict theirs">' || trimmed === "</mark>" || trimmed === "<<<<<<<" || trimmed === "=======" || trimmed === ">>>>>>>") {
-        removed++;
-        continue;
-      }
-      let cleanedLine = line.replace(/<\/?mark class="conflict (ours|theirs)">/g, "").replace(/<\/mark>/g, "");
-      if (cleanedLine !== line)
-        removed++;
-      if (cleanedLine.trim() === "" && line.trim() !== "") {
-        removed++;
-        continue;
-      }
-      cleaned.push(cleanedLine);
-    }
+    let content = await this.app.vault.read(file);
+    const originalLength = content.length;
+    content = content.replace(
+      /<mark class="conflict ours">([\s\S]*?)<\/mark><mark class="conflict theirs">[\s\S]*?<\/mark>/g,
+      "$1"
+    );
+    content = content.replace(
+      /<mark class="conflict theirs">[\s\S]*?<\/mark>/g,
+      ""
+    );
+    content = content.replace(/<mark class="conflict ours">/g, "");
+    content = content.replace(/<\/mark>/g, "");
+    content = content.replace(/^<<<<<<<.*\n/gm, "");
+    content = content.replace(/^=======\n/gm, "");
+    content = content.replace(/^>>>>>>>.*\n/gm, "");
+    content = content.replace(/\n{3,}/g, "\n\n");
+    const removed = originalLength - content.length;
     if (removed > 0) {
-      await this.app.vault.modify(file, cleaned.join("\n"));
+      await this.app.vault.modify(file, content);
       this.invalidateCache(year);
     }
     return removed;
