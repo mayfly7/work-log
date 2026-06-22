@@ -354,8 +354,8 @@ function formatWeekTitle(wg, year) {
   };
   return `\u7B2C${wg.weekIndex}\u5468\uFF08${fmtDate(s)} - ${fmtDate(e)}\uFF09`;
 }
-function formatDayTitle(date, settings) {
-  const dateStr = date.format(settings.dateFormat);
+function formatDayTitle(date, settings, dateFormat) {
+  const dateStr = date.format(dateFormat || settings.dateFormat);
   const weekday = formatWeekday(date, settings.weekdayLanguage);
   const holiday = getHolidayName(date.format("YYYY-MM-DD"));
   const suffix = holiday ? `\uFF08${holiday}\uFF09` : "";
@@ -384,11 +384,14 @@ var FileManager = class {
   constructor(app, settings) {
     /** 内存缓存 */
     this.cache = /* @__PURE__ */ new Map();
+    /** 文件 → 检测到的日期格式缓存 */
+    this.formatDetectCache = /* @__PURE__ */ new Map();
     this.app = app;
     this.settings = settings;
   }
   updateSettings(settings) {
     this.settings = settings;
+    this.formatDetectCache.clear();
   }
   // ─────────────────────────────────────────────────────
   // 文件路径
@@ -400,6 +403,47 @@ var FileManager = class {
     const dir = this.settings.logDirectory;
     const name = this.getFileName(year);
     return (0, import_obsidian3.normalizePath)(`${dir}/${name}.md`);
+  }
+  /**
+   * 检测文件中已有日期标题使用的格式
+   * 返回最常用的格式名，若文件无日期则返回 null
+   */
+  async detectExistingDateFormat(file) {
+    const path = file.path;
+    if (this.formatDetectCache.has(path)) {
+      return this.formatDetectCache.get(path);
+    }
+    const content = await this.app.vault.read(file);
+    const lines = content.split("\n");
+    const counts = /* @__PURE__ */ new Map();
+    const knownFormats = ["YYYY-MM-DD", "MM-DD", "M\u6708D\u65E5", "YYYY\u5E74MM\u6708DD\u65E5"];
+    for (const line of lines) {
+      if (!line.startsWith("#### "))
+        continue;
+      const datePart = line.replace(/^####\s+/, "").split(/\s+/)[0];
+      for (const fmt of knownFormats) {
+        const m = (0, import_obsidian3.moment)(datePart, fmt, true);
+        if (m.isValid() && m.year() >= 2e3) {
+          counts.set(fmt, (counts.get(fmt) || 0) + 1);
+          break;
+        }
+      }
+    }
+    let best = null;
+    let bestCount = 0;
+    for (const [fmt, count] of counts) {
+      if (count > bestCount) {
+        bestCount = count;
+        best = fmt;
+      }
+    }
+    this.formatDetectCache.set(path, best || "");
+    return best;
+  }
+  /** 获取用于格式化日期的格式：优先使用文件已有格式，否则用设置 */
+  async getEffectiveDateFormat(file) {
+    const detected = await this.detectExistingDateFormat(file);
+    return detected || this.settings.dateFormat;
   }
   async getOrCreateFile(year) {
     const filePath = this.getFilePath(year);
@@ -593,6 +637,7 @@ var FileManager = class {
     this.invalidateCache(year);
   }
   async insertDayHeading(file, date, wg, year) {
+    const dateFormat = await this.getEffectiveDateFormat(file);
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
     const dateKey = date.format("YYYY-MM-DD");
@@ -621,11 +666,12 @@ var FileManager = class {
         i = insertIdx - 1;
       }
     }
-    const dayHeading = `#### ${formatDayTitle(date, this.settings)}`;
+    const dayHeading = `#### ${formatDayTitle(date, this.settings, dateFormat)}`;
     lines.splice(insertIdx, 0, dayHeading, "");
     await this.app.vault.modify(file, lines.join("\n"));
   }
   async insertWeekBlock(file, mg, wg, month, year, targetDate) {
+    const dateFormat = await this.getEffectiveDateFormat(file);
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
     const monthHeading = `## ${formatMonthHeading(month)}`;
@@ -651,11 +697,11 @@ var FileManager = class {
     }
     const weekLines = ["", `### ${formatWeekTitle(wg, year)}`, ""];
     if (targetDate) {
-      weekLines.push(`#### ${formatDayTitle(targetDate, this.settings)}`);
+      weekLines.push(`#### ${formatDayTitle(targetDate, this.settings, dateFormat)}`);
       weekLines.push("");
     } else {
       for (const day of wg.days) {
-        weekLines.push(`#### ${formatDayTitle(day, this.settings)}`);
+        weekLines.push(`#### ${formatDayTitle(day, this.settings, dateFormat)}`);
         weekLines.push("");
       }
     }
@@ -663,6 +709,7 @@ var FileManager = class {
     await this.app.vault.modify(file, lines.join("\n"));
   }
   async insertMonthBlock(file, mg, allGroups, year, targetDate) {
+    const dateFormat = await this.getEffectiveDateFormat(file);
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
     let insertIdx = lines.length;
@@ -686,7 +733,7 @@ var FileManager = class {
       if (wg) {
         monthLines.push(`### ${formatWeekTitle(wg, year)}`);
         monthLines.push("");
-        monthLines.push(`#### ${formatDayTitle(targetDate, this.settings)}`);
+        monthLines.push(`#### ${formatDayTitle(targetDate, this.settings, dateFormat)}`);
         monthLines.push("");
       }
     } else {
@@ -694,7 +741,7 @@ var FileManager = class {
         monthLines.push(`### ${formatWeekTitle(wg, year)}`);
         monthLines.push("");
         for (const day of wg.days) {
-          monthLines.push(`#### ${formatDayTitle(day, this.settings)}`);
+          monthLines.push(`#### ${formatDayTitle(day, this.settings, dateFormat)}`);
           monthLines.push("");
         }
       }
@@ -738,6 +785,7 @@ var FileManager = class {
    */
   async repairYearStructure(year) {
     const file = await this.getOrCreateFile(year);
+    const dateFormat = await this.getEffectiveDateFormat(file);
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
     const groups = buildYearStructure(year, this.settings);
@@ -810,7 +858,7 @@ var FileManager = class {
         newLines.push("");
         for (const day of weekDays) {
           const dateKey = day.format("YYYY-MM-DD");
-          const heading = `#### ${formatDayTitle(day, this.settings)}`;
+          const heading = `#### ${formatDayTitle(day, this.settings, dateFormat)}`;
           const content2 = dateContent.get(dateKey);
           newLines.push(heading);
           if (content2 && content2.length > 0) {
@@ -914,6 +962,7 @@ var FileManager = class {
    */
   async ensureUpToToday(year) {
     const file = await this.getOrCreateFile(year);
+    const dateFormat = await this.getEffectiveDateFormat(file);
     const today = (0, import_obsidian3.moment)();
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
@@ -996,7 +1045,7 @@ var FileManager = class {
         newLines.push("");
         for (const day of daysToInclude) {
           const dateKey = day.format("YYYY-MM-DD");
-          const heading = `#### ${formatDayTitle(day, this.settings)}`;
+          const heading = `#### ${formatDayTitle(day, this.settings, dateFormat)}`;
           const dc = dateContent.get(dateKey);
           if (!dc || dc.length === 0) {
             addedCount++;
@@ -1047,6 +1096,7 @@ var FileManager = class {
     const file = this.app.vault.getAbstractFileByPath(filePath);
     if (!file)
       return;
+    const dateFormat = await this.getEffectiveDateFormat(file);
     const today = (0, import_obsidian3.moment)();
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
@@ -1128,7 +1178,7 @@ var FileManager = class {
         newLines.push("");
         for (const day of daysToInclude) {
           const dateKey = day.format("YYYY-MM-DD");
-          const heading = `#### ${formatDayTitle(day, this.settings)}`;
+          const heading = `#### ${formatDayTitle(day, this.settings, dateFormat)}`;
           const content2 = dateContent.get(dateKey);
           newLines.push(heading);
           if (content2 && content2.length > 0) {

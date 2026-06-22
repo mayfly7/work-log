@@ -179,8 +179,8 @@ export function formatWeekTitle(wg: WeekGroup, year: number): string {
 /**
  * 格式化日期标题：例如 "2026-01-05 星期一"
  */
-export function formatDayTitle(date: moment.Moment, settings: WorkLogSettings): string {
-  const dateStr = date.format(settings.dateFormat);
+export function formatDayTitle(date: moment.Moment, settings: WorkLogSettings, dateFormat?: string): string {
+  const dateStr = date.format(dateFormat || settings.dateFormat);
   const weekday = formatWeekday(date, settings.weekdayLanguage);
   const holiday = getHolidayName(date.format("YYYY-MM-DD"));
   const suffix = holiday ? `（${holiday}）` : "";

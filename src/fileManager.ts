@@ -18,6 +18,8 @@ export class FileManager {
   private settings: WorkLogSettings;
   /** 内存缓存 */
   private cache: DateLineCache = new Map();
+  /** 文件 → 检测到的日期格式缓存 */
+  private formatDetectCache = new Map<string, string>();
 
   constructor(app: App, settings: WorkLogSettings) {
     this.app = app;
@@ -26,6 +28,7 @@ export class FileManager {
 
   updateSettings(settings: WorkLogSettings) {
     this.settings = settings;
+    this.formatDetectCache.clear(); // 设置变更时清空格式检测缓存
   }
 
   // ─────────────────────────────────────────────────────
@@ -40,6 +43,52 @@ export class FileManager {
     const dir = this.settings.logDirectory;
     const name = this.getFileName(year);
     return normalizePath(`${dir}/${name}.md`);
+  }
+
+  /**
+   * 检测文件中已有日期标题使用的格式
+   * 返回最常用的格式名，若文件无日期则返回 null
+   */
+  private async detectExistingDateFormat(file: TFile): Promise<string | null> {
+    const path = file.path;
+    if (this.formatDetectCache.has(path)) {
+      return this.formatDetectCache.get(path)!;
+    }
+
+    const content = await this.app.vault.read(file);
+    const lines = content.split("\n");
+    const counts = new Map<string, number>();
+    const knownFormats = ["YYYY-MM-DD", "MM-DD", "M月D日", "YYYY年MM月DD日"];
+
+    for (const line of lines) {
+      if (!line.startsWith("#### ")) continue;
+      const datePart = line.replace(/^####\s+/, "").split(/\s+/)[0];
+      for (const fmt of knownFormats) {
+        const m = moment(datePart, fmt, true);
+        if (m.isValid() && m.year() >= 2000) {
+          counts.set(fmt, (counts.get(fmt) || 0) + 1);
+          break;
+        }
+      }
+    }
+
+    let best: string | null = null;
+    let bestCount = 0;
+    for (const [fmt, count] of counts) {
+      if (count > bestCount) {
+        bestCount = count;
+        best = fmt;
+      }
+    }
+
+    this.formatDetectCache.set(path, best || "");
+    return best;
+  }
+
+  /** 获取用于格式化日期的格式：优先使用文件已有格式，否则用设置 */
+  async getEffectiveDateFormat(file: TFile): Promise<string> {
+    const detected = await this.detectExistingDateFormat(file);
+    return detected || this.settings.dateFormat;
   }
 
   async getOrCreateFile(year: number): Promise<TFile> {
@@ -297,6 +346,7 @@ export class FileManager {
     wg: WeekGroup,
     year: number
   ): Promise<void> {
+    const dateFormat = await this.getEffectiveDateFormat(file);
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
     const dateKey = date.format("YYYY-MM-DD");
@@ -336,7 +386,7 @@ export class FileManager {
       }
     }
 
-    const dayHeading = `#### ${formatDayTitle(date, this.settings)}`;
+    const dayHeading = `#### ${formatDayTitle(date, this.settings, dateFormat)}`;
     lines.splice(insertIdx, 0, dayHeading, "");
     await this.app.vault.modify(file, lines.join("\n"));
   }
@@ -350,6 +400,7 @@ export class FileManager {
     /** 只插入这一个日期，不插入整周 */
     targetDate?: moment.Moment
   ): Promise<void> {
+    const dateFormat = await this.getEffectiveDateFormat(file);
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
     const monthHeading = `## ${formatMonthHeading(month)}`;
@@ -381,12 +432,12 @@ export class FileManager {
     const weekLines: string[] = ["", `### ${formatWeekTitle(wg, year)}`, ""];
     if (targetDate) {
       // 只插入目标日期
-      weekLines.push(`#### ${formatDayTitle(targetDate, this.settings)}`);
+      weekLines.push(`#### ${formatDayTitle(targetDate, this.settings, dateFormat)}`);
       weekLines.push("");
     } else {
       // 完整生成该周所有天
       for (const day of wg.days) {
-        weekLines.push(`#### ${formatDayTitle(day, this.settings)}`);
+        weekLines.push(`#### ${formatDayTitle(day, this.settings, dateFormat)}`);
         weekLines.push("");
       }
     }
@@ -403,6 +454,7 @@ export class FileManager {
     /** 只插入这一个日期，不插入整月 */
     targetDate?: moment.Moment
   ): Promise<void> {
+    const dateFormat = await this.getEffectiveDateFormat(file);
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
 
@@ -433,7 +485,7 @@ export class FileManager {
       if (wg) {
         monthLines.push(`### ${formatWeekTitle(wg, year)}`);
         monthLines.push("");
-        monthLines.push(`#### ${formatDayTitle(targetDate, this.settings)}`);
+        monthLines.push(`#### ${formatDayTitle(targetDate, this.settings, dateFormat)}`);
         monthLines.push("");
       }
     } else {
@@ -442,7 +494,7 @@ export class FileManager {
         monthLines.push(`### ${formatWeekTitle(wg, year)}`);
         monthLines.push("");
         for (const day of wg.days) {
-          monthLines.push(`#### ${formatDayTitle(day, this.settings)}`);
+          monthLines.push(`#### ${formatDayTitle(day, this.settings, dateFormat)}`);
           monthLines.push("");
         }
       }
@@ -493,6 +545,7 @@ export class FileManager {
    */
   async repairYearStructure(year: number): Promise<void> {
     const file = await this.getOrCreateFile(year);
+    const dateFormat = await this.getEffectiveDateFormat(file);
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
 
@@ -586,7 +639,7 @@ export class FileManager {
 
         for (const day of weekDays) {
           const dateKey = day.format("YYYY-MM-DD");
-          const heading = `#### ${formatDayTitle(day, this.settings)}`;
+          const heading = `#### ${formatDayTitle(day, this.settings, dateFormat)}`;
           const content = dateContent.get(dateKey);
 
           newLines.push(heading);
@@ -722,6 +775,7 @@ export class FileManager {
    */
   async ensureUpToToday(year: number): Promise<void> {
     const file = await this.getOrCreateFile(year);
+    const dateFormat = await this.getEffectiveDateFormat(file);
     const today = moment();
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
@@ -814,7 +868,7 @@ export class FileManager {
 
         for (const day of daysToInclude) {
           const dateKey = day.format("YYYY-MM-DD");
-          const heading = `#### ${formatDayTitle(day, this.settings)}`;
+          const heading = `#### ${formatDayTitle(day, this.settings, dateFormat)}`;
           const dc = dateContent.get(dateKey);
 
           if (!dc || dc.length === 0) {
@@ -876,7 +930,7 @@ export class FileManager {
     const file = this.app.vault.getAbstractFileByPath(filePath) as TFile | null;
     if (!file) return;
 
-    const today = moment();
+    const dateFormat = await this.getEffectiveDateFormat(file);    const today = moment();
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
 
@@ -969,7 +1023,7 @@ export class FileManager {
 
         for (const day of daysToInclude) {
           const dateKey = day.format("YYYY-MM-DD");
-          const heading = `#### ${formatDayTitle(day, this.settings)}`;
+          const heading = `#### ${formatDayTitle(day, this.settings, dateFormat)}`;
           const content = dateContent.get(dateKey);
 
           newLines.push(heading);
