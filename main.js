@@ -894,7 +894,7 @@ var FileManager = class {
   }
   /**
    * 清理文件中的 Git/Obsidian Git 冲突标记
-   * 成对冲突（ours+theirs）只保留 ours 版本；独立 theirs 块直接丢弃
+   * 直接移除所有 <mark> 标签，后续通过重建/迁移来消除重复内容
    */
   async cleanGitConflicts(year) {
     const filePath = this.getFilePath(year);
@@ -903,16 +903,8 @@ var FileManager = class {
       return 0;
     let content = await this.app.vault.read(file);
     const originalLength = content.length;
-    content = content.replace(
-      /<mark class="conflict ours">([\s\S]*?)<\/mark><mark class="conflict theirs">[\s\S]*?<\/mark>/g,
-      "$1"
-    );
-    content = content.replace(
-      /<mark class="conflict theirs">[\s\S]*?<\/mark>/g,
-      ""
-    );
-    content = content.replace(/<mark class="conflict ours">/g, "");
-    content = content.replace(/<\/mark>/g, "");
+    content = content.replace(/<\/?mark class="conflict (ours|theirs)">/g, "");
+    content = content.replace(/<\/?mark>/g, "");
     content = content.replace(/^<<<<<<<.*\n/gm, "");
     content = content.replace(/^=======\n/gm, "");
     content = content.replace(/^>>>>>>>.*\n/gm, "");
@@ -921,6 +913,7 @@ var FileManager = class {
     if (removed > 0) {
       await this.app.vault.modify(file, content);
       this.invalidateCache(year);
+      await this.repairYearStructure(year);
     }
     return removed;
   }

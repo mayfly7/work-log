@@ -688,7 +688,7 @@ export class FileManager {
 
   /**
    * 清理文件中的 Git/Obsidian Git 冲突标记
-   * 成对冲突（ours+theirs）只保留 ours 版本；独立 theirs 块直接丢弃
+   * 直接移除所有 <mark> 标签，后续通过重建/迁移来消除重复内容
    */
   async cleanGitConflicts(year: number): Promise<number> {
     const filePath = this.getFilePath(year);
@@ -698,35 +698,24 @@ export class FileManager {
     let content = await this.app.vault.read(file);
     const originalLength = content.length;
 
-    // 1. 处理成对冲突：保留 ours，丢弃 theirs
-    // <mark class="conflict ours">...</mark><mark class="conflict theirs">...</mark>
-    content = content.replace(
-      /<mark class="conflict ours">([\s\S]*?)<\/mark><mark class="conflict theirs">[\s\S]*?<\/mark>/g,
-      "$1"
-    );
+    // 移除所有 <mark class="conflict ..."> 和 </mark> 标签
+    content = content.replace(/<\/?mark class="conflict (ours|theirs)">/g, "");
+    content = content.replace(/<\/?mark>/g, "");
 
-    // 2. 移除残留的 theirs 块（没有对应 ours 的）
-    content = content.replace(
-      /<mark class="conflict theirs">[\s\S]*?<\/mark>/g,
-      ""
-    );
-
-    // 3. 移除残留的 ours 标记（没有对应 theirs 的）
-    content = content.replace(/<mark class="conflict ours">/g, "");
-    content = content.replace(/<\/mark>/g, "");
-
-    // 4. 清理原始 Git 冲突标记
+    // 移除原始 Git 冲突标记
     content = content.replace(/^<<<<<<<.*\n/gm, "");
     content = content.replace(/^=======\n/gm, "");
     content = content.replace(/^>>>>>>>.*\n/gm, "");
 
-    // 5. 清理连续空行（最多保留一个）
+    // 清理连续空行
     content = content.replace(/\n{3,}/g, "\n\n");
 
     const removed = originalLength - content.length;
     if (removed > 0) {
       await this.app.vault.modify(file, content);
       this.invalidateCache(year);
+      // 清理后自动重建，消除残留的重复日期
+      await this.repairYearStructure(year);
     }
     return removed;
   }
