@@ -810,15 +810,17 @@ var FileManager = class {
           }
         }
         const m = parseDayTitle(line, this.settings.dateFormat);
-        currentDateKey = m ? m.format("YYYY-MM-DD") : null;
-        currentContent = [];
-        const colonIdx = line.indexOf("\uFF1A");
-        if (colonIdx === -1) {
-          const colonIdx2 = line.indexOf(":");
-          if (colonIdx2 !== -1)
-            currentContent.push(line.substring(colonIdx2 + 1).trim());
-        } else {
-          currentContent.push(line.substring(colonIdx + 1).trim());
+        if (m) {
+          currentDateKey = m.format("YYYY-MM-DD");
+          currentContent = [];
+          const colonIdx = line.indexOf("\uFF1A");
+          if (colonIdx === -1) {
+            const colonIdx2 = line.indexOf(":");
+            if (colonIdx2 !== -1)
+              currentContent.push(line.substring(colonIdx2 + 1).trim());
+          } else {
+            currentContent.push(line.substring(colonIdx + 1).trim());
+          }
         }
       } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
         if (currentDateKey && currentContent.length > 0) {
@@ -985,15 +987,17 @@ var FileManager = class {
           }
         }
         const m = parseDayTitle(line, this.settings.dateFormat);
-        currentDateKey = m ? m.format("YYYY-MM-DD") : null;
-        currentContent = [];
-        const colonIdx = line.indexOf("\uFF1A");
-        if (colonIdx === -1) {
-          const colonIdx2 = line.indexOf(":");
-          if (colonIdx2 !== -1)
-            currentContent.push(line.substring(colonIdx2 + 1).trim());
-        } else {
-          currentContent.push(line.substring(colonIdx + 1).trim());
+        if (m) {
+          currentDateKey = m.format("YYYY-MM-DD");
+          currentContent = [];
+          const colonIdx = line.indexOf("\uFF1A");
+          if (colonIdx === -1) {
+            const colonIdx2 = line.indexOf(":");
+            if (colonIdx2 !== -1)
+              currentContent.push(line.substring(colonIdx2 + 1).trim());
+          } else {
+            currentContent.push(line.substring(colonIdx + 1).trim());
+          }
         }
       } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
         if (currentDateKey && currentContent.length > 0) {
@@ -1119,15 +1123,17 @@ var FileManager = class {
           }
         }
         const m = parseDayTitle(line, this.settings.dateFormat);
-        currentDateKey = m ? m.format("YYYY-MM-DD") : null;
-        currentContent = [];
-        const colonIdx = line.indexOf("\uFF1A");
-        if (colonIdx === -1) {
-          const colonIdx2 = line.indexOf(":");
-          if (colonIdx2 !== -1)
-            currentContent.push(line.substring(colonIdx2 + 1).trim());
-        } else {
-          currentContent.push(line.substring(colonIdx + 1).trim());
+        if (m) {
+          currentDateKey = m.format("YYYY-MM-DD");
+          currentContent = [];
+          const colonIdx = line.indexOf("\uFF1A");
+          if (colonIdx === -1) {
+            const colonIdx2 = line.indexOf(":");
+            if (colonIdx2 !== -1)
+              currentContent.push(line.substring(colonIdx2 + 1).trim());
+          } else {
+            currentContent.push(line.substring(colonIdx + 1).trim());
+          }
         }
       } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
         if (currentDateKey && currentContent.length > 0) {

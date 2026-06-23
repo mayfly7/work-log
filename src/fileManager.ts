@@ -580,16 +580,19 @@ export class FileManager {
         }
         // 解析新日期
         const m = parseDayTitle(line, this.settings.dateFormat);
-        currentDateKey = m ? m.format("YYYY-MM-DD") : null;
-        currentContent = [];
-        // 冒号后的同行动内容
-        const colonIdx = line.indexOf("：");
-        if (colonIdx === -1) {
-          const colonIdx2 = line.indexOf(":");
-          if (colonIdx2 !== -1) currentContent.push(line.substring(colonIdx2 + 1).trim());
-        } else {
-          currentContent.push(line.substring(colonIdx + 1).trim());
+        if (m) {
+          currentDateKey = m.format("YYYY-MM-DD");
+          currentContent = [];
+          // 冒号后的同行动内容
+          const colonIdx = line.indexOf("：");
+          if (colonIdx === -1) {
+            const colonIdx2 = line.indexOf(":");
+            if (colonIdx2 !== -1) currentContent.push(line.substring(colonIdx2 + 1).trim());
+          } else {
+            currentContent.push(line.substring(colonIdx + 1).trim());
+          }
         }
+        // 解析失败时保持 currentDateKey 不变，防止内容丢失
       } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
         // 遇到标题，保存当前日期块
         if (currentDateKey && currentContent.length > 0) {
@@ -799,15 +802,18 @@ export class FileManager {
           }
         }
         const m = parseDayTitle(line, this.settings.dateFormat);
-        currentDateKey = m ? m.format("YYYY-MM-DD") : null;
-        currentContent = [];
-        const colonIdx = line.indexOf("：");
-        if (colonIdx === -1) {
-          const colonIdx2 = line.indexOf(":");
-          if (colonIdx2 !== -1) currentContent.push(line.substring(colonIdx2 + 1).trim());
-        } else {
-          currentContent.push(line.substring(colonIdx + 1).trim());
+        if (m) {
+          currentDateKey = m.format("YYYY-MM-DD");
+          currentContent = [];
+          const colonIdx = line.indexOf("：");
+          if (colonIdx === -1) {
+            const colonIdx2 = line.indexOf(":");
+            if (colonIdx2 !== -1) currentContent.push(line.substring(colonIdx2 + 1).trim());
+          } else {
+            currentContent.push(line.substring(colonIdx + 1).trim());
+          }
         }
+        // 解析失败时保持 currentDateKey 不变，防止内容丢失
       } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
         if (currentDateKey && currentContent.length > 0) {
           while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
@@ -953,15 +959,18 @@ export class FileManager {
           }
         }
         const m = parseDayTitle(line, this.settings.dateFormat);
-        currentDateKey = m ? m.format("YYYY-MM-DD") : null;
-        currentContent = [];
-        const colonIdx = line.indexOf("：");
-        if (colonIdx === -1) {
-          const colonIdx2 = line.indexOf(":");
-          if (colonIdx2 !== -1) currentContent.push(line.substring(colonIdx2 + 1).trim());
-        } else {
-          currentContent.push(line.substring(colonIdx + 1).trim());
+        if (m) {
+          currentDateKey = m.format("YYYY-MM-DD");
+          currentContent = [];
+          const colonIdx = line.indexOf("：");
+          if (colonIdx === -1) {
+            const colonIdx2 = line.indexOf(":");
+            if (colonIdx2 !== -1) currentContent.push(line.substring(colonIdx2 + 1).trim());
+          } else {
+            currentContent.push(line.substring(colonIdx + 1).trim());
+          }
         }
+        // 解析失败时保持 currentDateKey 不变，防止内容丢失
       } else if (line.startsWith("### ") || line.startsWith("## ") || line.startsWith("# ")) {
         if (currentDateKey && currentContent.length > 0) {
           while (currentContent.length > 0 && currentContent[currentContent.length - 1].trim() === "") {
