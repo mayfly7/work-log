@@ -2440,6 +2440,12 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
       const year = (0, import_obsidian6.moment)().year();
       const filePath = this.fileManager.getFilePath(year);
       const existing = this.app.vault.getAbstractFileByPath(filePath);
+      if (existing) {
+        try {
+          await this.fileManager.cleanGitConflicts(year);
+        } catch (e) {
+        }
+      }
       if (this.settings.generationMode === "full_year") {
         if (!existing) {
           try {

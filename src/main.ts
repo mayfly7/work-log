@@ -182,6 +182,15 @@ export default class WorkLogPlugin extends Plugin {
       const filePath = this.fileManager.getFilePath(year);
       const existing = this.app.vault.getAbstractFileByPath(filePath);
 
+      // 文件已存在时先自动清理 Git 冲突标记
+      if (existing) {
+        try {
+          await this.fileManager.cleanGitConflicts(year);
+        } catch {
+          // 忽略错误
+        }
+      }
+
       if (this.settings.generationMode === "full_year") {
         // 预生成全年：文件不存在则自动创建
         if (!existing) {
