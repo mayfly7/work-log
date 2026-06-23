@@ -1676,6 +1676,7 @@ var CalendarView = class extends import_obsidian4.ItemView {
   }
   async onOpen() {
     this.registerDomEvent(document, "scroll", () => this.removeTooltip(), true);
+    this.registerDomEvent(document, "click", () => this.removeTooltip());
     await this.refresh();
   }
   async onClose() {

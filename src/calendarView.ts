@@ -39,6 +39,8 @@ export class CalendarView extends ItemView {
   async onOpen(): Promise<void> {
     // 滚动时清除 tooltip（tooltip 基于 pageX/pageY 定位，滚动后位置会错）
     this.registerDomEvent(document, "scroll", () => this.removeTooltip(), true);
+    // 点击文档任意位置清除 tooltip
+    this.registerDomEvent(document, "click", () => this.removeTooltip());
     await this.refresh();
   }
 
