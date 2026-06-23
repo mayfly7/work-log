@@ -1085,8 +1085,8 @@ export class FileManager {
     const isTodo = label.includes("待办");
     const isSession = !isTodo; // 上午 / 下午
 
-    // 上午/下午使用分隔线样式，待办使用 checkbox 格式
-    const entry = isTodo ? `- [ ] ${label.replace("☐ ", "")}` : `----------------------------${label}-------------------------------`;
+    // 上午/下午/全天使用短分隔线样式，避免手机端折行
+    const entry = isTodo ? `- [ ] ${label.replace("☐ ", "")}` : `---------- ${label} ----------`;
 
     // 扫描该日期区块，检查是否已存在相同标签
     let insertIdx = headingLine + 1;
