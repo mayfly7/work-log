@@ -1657,7 +1657,6 @@ var CalendarView = class extends import_obsidian4.ItemView {
     this.selectedDate = null;
     this.tooltip = null;
     this.actionBtnEl = null;
-    this.renderGeneration = 0;
     /** 用户最后一次手动选中日期的时间戳，用于防止光标同步立即覆盖 */
     this.lastUserSelectTime = 0;
     this.plugin = plugin;
@@ -1690,7 +1689,6 @@ var CalendarView = class extends import_obsidian4.ItemView {
     await this.render();
   }
   async render() {
-    this.renderGeneration++;
     this.removeTooltip();
     const container = this.containerEl.children[1];
     container.empty();
@@ -1705,6 +1703,10 @@ var CalendarView = class extends import_obsidian4.ItemView {
     );
     this.renderHeader(container);
     this.renderCalendarGrid(container, datesWithContent, incompleteTodoMap);
+    const grid = container.querySelector(".wl-cal-grid");
+    if (grid) {
+      grid.addEventListener("mouseleave", () => this.removeTooltip());
+    }
     this.renderActionButton(container);
     const allTodos = await this.plugin.fileManager.getAllIncompleteTodos(this.currentYear);
     this.renderTodoList(container, allTodos);
@@ -2061,13 +2063,10 @@ ${lines.join("\n")}`, 5e3);
   }
   async showTooltip(e, date) {
     this.removeTooltip();
-    const gen = this.renderGeneration;
     const [preview, todos] = await Promise.all([
       this.plugin.fileManager.getDayPreview(date, 4),
       this.plugin.fileManager.getIncompleteTodosForDate(date)
     ]);
-    if (this.renderGeneration !== gen)
-      return;
     if (!preview && todos.length === 0)
       return;
     const tt = document.createElement("div");

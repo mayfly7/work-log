@@ -12,7 +12,6 @@ export class CalendarView extends ItemView {
   private selectedDate: moment.Moment | null = null;
   private tooltip: HTMLElement | null = null;
   private actionBtnEl: HTMLElement | null = null;
-  private renderGeneration = 0;
   /** 用户最后一次手动选中日期的时间戳，用于防止光标同步立即覆盖 */
   lastUserSelectTime: number = 0;
 
@@ -57,8 +56,6 @@ export class CalendarView extends ItemView {
   }
 
   private async render(): Promise<void> {
-    // 递增渲染代数，让进行中的 showTooltip 能检测到失效
-    this.renderGeneration++;
     // 重新渲染前先清除残留的 tooltip，防止 re-render 销毁格子后 mouseleave 不触发
     this.removeTooltip();
     const container = this.containerEl.children[1] as HTMLElement;
@@ -79,6 +76,11 @@ export class CalendarView extends ItemView {
 
     this.renderHeader(container);
     this.renderCalendarGrid(container, datesWithContent, incompleteTodoMap);
+    // 鼠标离开日历网格区域时清除 tooltip（兜底）
+    const grid = container.querySelector(".wl-cal-grid") as HTMLElement;
+    if (grid) {
+      grid.addEventListener("mouseleave", () => this.removeTooltip());
+    }
     this.renderActionButton(container);
 
     // 加载所有未完成待办（全文件，非仅选中日期）
@@ -494,15 +496,12 @@ export class CalendarView extends ItemView {
 
   private async showTooltip(e: MouseEvent, date: moment.Moment): Promise<void> {
     this.removeTooltip();
-    const gen = this.renderGeneration;
 
     const [preview, todos] = await Promise.all([
       this.plugin.fileManager.getDayPreview(date, 4),
       this.plugin.fileManager.getIncompleteTodosForDate(date),
     ]);
 
-    // 渲染代数已变，说明此 tooltip 对应的格子已被销毁，放弃显示
-    if (this.renderGeneration !== gen) return;
     if (!preview && todos.length === 0) return;
 
     const tt = document.createElement("div");
