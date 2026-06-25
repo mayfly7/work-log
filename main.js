@@ -2099,6 +2099,11 @@ ${lines.join("\n")}`, 5e3);
     }
     document.body.appendChild(tt);
     await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    if (this.tooltipGen !== gen) {
+      if (document.body.contains(tt))
+        document.body.removeChild(tt);
+      return;
+    }
     const rect = tt.getBoundingClientRect();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
@@ -2125,6 +2130,10 @@ ${lines.join("\n")}`, 5e3);
       document.body.removeChild(this.tooltip);
     }
     this.tooltip = null;
+    document.querySelectorAll(".wl-tooltip").forEach((el) => {
+      if (el.parentNode)
+        el.parentNode.removeChild(el);
+    });
     this.tooltip = null;
   }
   // ─────────────────────────────────────────────────────

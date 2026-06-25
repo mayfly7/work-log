@@ -539,6 +539,12 @@ export class CalendarView extends ItemView {
     // 延迟一帧获取真实布局尺寸
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
+    // await 期间可能有新的 tooltip 请求或 removeTooltip 被调用，检查并清理
+    if (this.tooltipGen !== gen) {
+      if (document.body.contains(tt)) document.body.removeChild(tt);
+      return;
+    }
+
     const rect = tt.getBoundingClientRect();
     const vw = window.innerWidth;
     const vh = window.innerHeight;
@@ -571,6 +577,10 @@ export class CalendarView extends ItemView {
       document.body.removeChild(this.tooltip);
     }
     this.tooltip = null;
+    // 兜底：移除所有孤立的 wl-tooltip 元素（防止任何泄漏）
+    document.querySelectorAll(".wl-tooltip").forEach((el) => {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    });
     this.tooltip = null;
   }
 
