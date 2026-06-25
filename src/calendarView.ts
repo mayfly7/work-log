@@ -14,6 +14,7 @@ export class CalendarView extends ItemView {
   private actionBtnEl: HTMLElement | null = null;
   /** 用户最后一次手动选中日期的时间戳，用于防止光标同步立即覆盖 */
   lastUserSelectTime: number = 0;
+  private tooltipGen = 0; // 每次 showTooltip 调用递增
 
   constructor(leaf: WorkspaceLeaf, plugin: WorkLogPlugin) {
     super(leaf);
@@ -498,12 +499,15 @@ export class CalendarView extends ItemView {
 
   private async showTooltip(e: MouseEvent, date: moment.Moment): Promise<void> {
     this.removeTooltip();
+    const gen = ++this.tooltipGen;
 
     const [preview, todos] = await Promise.all([
       this.plugin.fileManager.getDayPreview(date, 4),
       this.plugin.fileManager.getIncompleteTodosForDate(date),
     ]);
 
+    // 如果在此期间有新的 tooltip 请求，放弃本次（避免多个 tooltip 同时显示）
+    if (this.tooltipGen !== gen) return;
     if (!preview && todos.length === 0) return;
 
     const tt = document.createElement("div");
@@ -562,9 +566,11 @@ export class CalendarView extends ItemView {
   }
 
   private removeTooltip(): void {
+    this.tooltipGen++; // 使所有进行中的 showTooltip 失效
     if (this.tooltip && document.body.contains(this.tooltip)) {
       document.body.removeChild(this.tooltip);
     }
+    this.tooltip = null;
     this.tooltip = null;
   }
 
