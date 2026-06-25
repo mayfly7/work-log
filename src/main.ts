@@ -182,13 +182,15 @@ export default class WorkLogPlugin extends Plugin {
       const filePath = this.fileManager.getFilePath(year);
       const existing = this.app.vault.getAbstractFileByPath(filePath);
 
-      // 文件已存在时先自动清理 Git 冲突标记
+      // 延迟清理 Git 冲突标记，避开 Obsidian Git 同步时间
       if (existing) {
-        try {
-          await this.fileManager.cleanGitConflicts(year);
-        } catch {
-          // 忽略错误
-        }
+        setTimeout(async () => {
+          try {
+            await this.fileManager.cleanGitConflicts(year);
+          } catch {
+            // 忽略错误
+          }
+        }, 15000); // 15 秒后执行
       }
 
       if (this.settings.generationMode === "full_year") {
