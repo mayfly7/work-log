@@ -905,8 +905,8 @@ var FileManager = class {
       return 0;
     let content = await this.app.vault.read(file);
     const originalLength = content.length;
-    content = content.replace(/<\/?mark class="conflict (ours|theirs)">/g, "");
-    content = content.replace(/<\/?mark>/g, "");
+    content = content.replace(/<\/?\s*mark\s+class\s*=\s*["']conflict\s+(ours|theirs)["']\s*>/gi, "");
+    content = content.replace(/<\/\s*mark\s*>/gi, "");
     content = content.replace(/^<<<<<<<.*\n/gm, "");
     content = content.replace(/^=======\n/gm, "");
     content = content.replace(/^>>>>>>>.*\n/gm, "");

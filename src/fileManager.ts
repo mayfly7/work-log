@@ -701,9 +701,10 @@ export class FileManager {
     let content = await this.app.vault.read(file);
     const originalLength = content.length;
 
-    // 移除所有 <mark class="conflict ..."> 和 </mark> 标签
-    content = content.replace(/<\/?mark class="conflict (ours|theirs)">/g, "");
-    content = content.replace(/<\/?mark>/g, "");
+    // 移除所有 <mark class="conflict ..."> （兼容单双引号、多余空格）
+    content = content.replace(/<\/?\s*mark\s+class\s*=\s*["']conflict\s+(ours|theirs)["']\s*>/gi, "");
+    // 移除所有 </mark> 闭合标签
+    content = content.replace(/<\/\s*mark\s*>/gi, "");
 
     // 移除原始 Git 冲突标记
     content = content.replace(/^<<<<<<<.*\n/gm, "");
