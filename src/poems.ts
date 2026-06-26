@@ -61,8 +61,46 @@ export const POEMS: Poem[] = [
   { author: "张九龄", text: "海上生明月，天涯共此时。", source: "《望月怀远》" },
 ];
 
+/** API 返回的诗数据 */
+interface PoemApiData {
+  title: string;
+  content: string[];
+  author: { name: string };
+  dynasty: { name: string };
+}
+
 /**
- * 基于日期种子选取诗词，同一天固定返回同一首
+ * 从 API 获取随机诗词，失败时返回 null
+ * 每日缓存，避免重复请求
+ */
+let cachedPoem: Poem | null = null;
+let cacheDate = "";
+
+export async function fetchDailyPoem(): Promise<Poem | null> {
+  const today = new Date().toISOString().slice(0, 10);
+  if (cacheDate === today && cachedPoem) return cachedPoem;
+
+  try {
+    const resp = await fetch("https://poetry.palemoky.com/api/poems/random");
+    const json = await resp.json();
+    const d = json.data as PoemApiData;
+    // 取前两句作为展示
+    const line = d.content.slice(0, 2).join("，");
+    const poem: Poem = {
+      author: `${d.dynasty.name} · ${d.author.name}`,
+      text: line,
+      source: `《${d.title}》`,
+    };
+    cachedPoem = poem;
+    cacheDate = today;
+    return poem;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 基于日期种子选取本地诗词，同一天固定返回同一首
  */
 export function getDailyPoem(seed: string): Poem {
   let hash = 0;

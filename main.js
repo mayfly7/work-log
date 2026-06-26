@@ -1716,6 +1716,29 @@ var POEMS = [
   { author: "\u9648\u5B50\u6602", text: "\u524D\u4E0D\u89C1\u53E4\u4EBA\uFF0C\u540E\u4E0D\u89C1\u6765\u8005\u3002\u5FF5\u5929\u5730\u4E4B\u60A0\u60A0\uFF0C\u72EC\u6006\u7136\u800C\u6D95\u4E0B\u3002", source: "\u300A\u767B\u5E7D\u5DDE\u53F0\u6B4C\u300B" },
   { author: "\u5F20\u4E5D\u9F84", text: "\u6D77\u4E0A\u751F\u660E\u6708\uFF0C\u5929\u6DAF\u5171\u6B64\u65F6\u3002", source: "\u300A\u671B\u6708\u6000\u8FDC\u300B" }
 ];
+var cachedPoem = null;
+var cacheDate = "";
+async function fetchDailyPoem() {
+  const today = new Date().toISOString().slice(0, 10);
+  if (cacheDate === today && cachedPoem)
+    return cachedPoem;
+  try {
+    const resp = await fetch("https://poetry.palemoky.com/api/poems/random");
+    const json = await resp.json();
+    const d = json.data;
+    const line = d.content.slice(0, 2).join("\uFF0C");
+    const poem = {
+      author: `${d.dynasty.name} \xB7 ${d.author.name}`,
+      text: line,
+      source: `\u300A${d.title}\u300B`
+    };
+    cachedPoem = poem;
+    cacheDate = today;
+    return poem;
+  } catch (e) {
+    return null;
+  }
+}
 function getDailyPoem(seed) {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
@@ -2117,9 +2140,12 @@ ${lines.join("\n")}`, 5e3);
   // ────────────────────────────────────────────
   // Daily Poem
   // ────────────────────────────────────────────
-  renderDailyPoem(container) {
+  async renderDailyPoem(container) {
     const today = (0, import_obsidian4.moment)().format("YYYY-MM-DD");
-    const poem = getDailyPoem(today);
+    let poem = await fetchDailyPoem();
+    if (!poem) {
+      poem = getDailyPoem(today);
+    }
     const section = container.createDiv("wl-daily-poem");
     const text = section.createDiv("wl-poem-text");
     text.textContent = `"${poem.text}"`;

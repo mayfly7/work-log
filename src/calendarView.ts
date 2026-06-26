@@ -2,7 +2,7 @@ import { ItemView, WorkspaceLeaf, moment, requestUrl, Notice } from "obsidian";
 import type WorkLogPlugin from "./main";
 import { isSameDay } from "./dateUtils";
 import { getHolidayName, fetchHolidays } from "./holidays";
-import { getDailyPoem } from "./poems";
+import { getDailyPoem, fetchDailyPoem } from "./poems";
 
 export const CALENDAR_VIEW_TYPE = "work-log-calendar";
 
@@ -468,9 +468,13 @@ export class CalendarView extends ItemView {
   // Daily Poem
   // ────────────────────────────────────────────
 
-  private renderDailyPoem(container: HTMLElement): void {
+  private async renderDailyPoem(container: HTMLElement): Promise<void> {
     const today = moment().format("YYYY-MM-DD");
-    const poem = getDailyPoem(today);
+    // 优先尝试 API，失败则用本地诗词
+    let poem = await fetchDailyPoem();
+    if (!poem) {
+      poem = getDailyPoem(today);
+    }
     const section = container.createDiv("wl-daily-poem");
     const text = section.createDiv("wl-poem-text");
     text.textContent = `"${poem.text}"`;
