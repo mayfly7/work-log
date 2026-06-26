@@ -1726,10 +1726,23 @@ async function fetchDailyPoem() {
     const resp = await fetch("https://poetry.palemoky.com/api/poems/random");
     const json = await resp.json();
     const d = json.data;
-    const line = d.content.slice(0, 2).join("\uFF0C");
+    const fullText = d.content.join("");
+    let text;
+    if (fullText.length <= 56) {
+      text = d.content.join("\uFF0C").replace(/[。？！]$/, "");
+    } else {
+      const lines = d.content;
+      if (lines.length >= 6) {
+        text = lines.slice(2, 4).join("\uFF0C");
+      } else if (lines.length >= 4) {
+        text = lines.slice(1, 3).join("\uFF0C");
+      } else {
+        text = lines.slice(0, 2).join("\uFF0C");
+      }
+    }
     const poem = {
       author: `${d.dynasty.name} \xB7 ${d.author.name}`,
-      text: line,
+      text,
       source: `\u300A${d.title}\u300B`
     };
     cachedPoem = poem;

@@ -84,11 +84,28 @@ export async function fetchDailyPoem(): Promise<Poem | null> {
     const resp = await fetch("https://poetry.palemoky.com/api/poems/random");
     const json = await resp.json();
     const d = json.data as PoemApiData;
-    // 取前两句作为展示
-    const line = d.content.slice(0, 2).join("，");
+
+    // 正文总字数不超过 56 字（七律上限）则显示全文
+    const fullText = d.content.join("");
+    let text: string;
+    if (fullText.length <= 56) {
+      // 按句号、问号、感叹号分行，或用逗号分隔
+      text = d.content.join("，").replace(/[。？！]$/, "");
+    } else {
+      // 超过 56 字取两句，优先取中间联（颔联/颈联往往最有名）
+      const lines = d.content;
+      if (lines.length >= 6) {
+        text = lines.slice(2, 4).join("，"); // 颔联（第3-4句）
+      } else if (lines.length >= 4) {
+        text = lines.slice(1, 3).join("，"); // 取中间两句
+      } else {
+        text = lines.slice(0, 2).join("，");
+      }
+    }
+
     const poem: Poem = {
       author: `${d.dynasty.name} · ${d.author.name}`,
-      text: line,
+      text,
       source: `《${d.title}》`,
     };
     cachedPoem = poem;
