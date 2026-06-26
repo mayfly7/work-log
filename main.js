@@ -27,7 +27,7 @@ __export(main_exports, {
   default: () => WorkLogPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian6 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 
 // src/settings.ts
 var import_obsidian = require("obsidian");
@@ -228,13 +228,13 @@ function initBuiltinHolidays() {
     }
   }
 }
-async function fetchHolidays(requestUrl3, year) {
+async function fetchHolidays(requestUrl4, year) {
   var _a;
   if (FETCHED_YEARS.has(year))
     return;
   try {
     const url = `https://raw.githubusercontent.com/NateScarlet/holiday-cn/master/${year}.json`;
-    const resp = await requestUrl3({ url, method: "GET" });
+    const resp = await requestUrl4({ url, method: "GET" });
     if (resp.status !== 200 || !((_a = resp.json) == null ? void 0 : _a.days)) {
       throw new Error("Invalid response");
     }
@@ -1661,9 +1661,10 @@ var FileManager = class {
 };
 
 // src/calendarView.ts
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/poems.ts
+var import_obsidian4 = require("obsidian");
 var POEMS = [
   { author: "\u82CF\u8F7C", text: "\u4EBA\u751F\u5982\u9006\u65C5\uFF0C\u6211\u4EA6\u662F\u884C\u4EBA\u3002", source: "\u300A\u4E34\u6C5F\u4ED9\xB7\u9001\u94B1\u7A46\u7236\u300B" },
   { author: "\u82CF\u8F7C", text: "\u7AF9\u6756\u8292\u978B\u8F7B\u80DC\u9A6C\uFF0C\u8C01\u6015\uFF1F\u4E00\u84D1\u70DF\u96E8\u4EFB\u5E73\u751F\u3002", source: "\u300A\u5B9A\u98CE\u6CE2\u300B" },
@@ -1723,9 +1724,8 @@ async function fetchDailyPoem() {
   if (cacheDate === today && cachedPoem)
     return cachedPoem;
   try {
-    const resp = await fetch("https://poetry.palemoky.com/api/poems/random");
-    const json = await resp.json();
-    const d = json.data;
+    const resp = await (0, import_obsidian4.requestUrl)({ url: "https://poetry.palemoky.com/api/poems/random" });
+    const d = resp.json.data;
     const fullText = d.content.join("");
     let text;
     if (fullText.length <= 56) {
@@ -1766,7 +1766,7 @@ function getDailyPoem(seed) {
 
 // src/calendarView.ts
 var CALENDAR_VIEW_TYPE = "work-log-calendar";
-var CalendarView = class extends import_obsidian4.ItemView {
+var CalendarView = class extends import_obsidian5.ItemView {
   // 每次 showTooltip 调用递增
   constructor(leaf, plugin) {
     super(leaf);
@@ -1790,7 +1790,7 @@ var CalendarView = class extends import_obsidian4.ItemView {
     // ────────────────────────────────────────────
     this.poemData = null;
     this.plugin = plugin;
-    const now = (0, import_obsidian4.moment)();
+    const now = (0, import_obsidian5.moment)();
     this.currentYear = now.year();
     this.currentMonth = now.month() + 1;
     this.selectedDate = now.clone();
@@ -1854,7 +1854,7 @@ var CalendarView = class extends import_obsidian4.ItemView {
     prevBtn.title = "\u4E0A\u4E00\u6708";
     prevBtn.addEventListener("click", () => this.navigateMonth(-1));
     const titleArea = header.createDiv("wl-cal-title");
-    const now = (0, import_obsidian4.moment)();
+    const now = (0, import_obsidian5.moment)();
     const yearSel = titleArea.createEl("select", { cls: "wl-year-select" });
     const startYear = now.year() - 5;
     const endYear = now.year() + 2;
@@ -1865,7 +1865,7 @@ var CalendarView = class extends import_obsidian4.ItemView {
     }
     yearSel.addEventListener("change", async (e) => {
       this.currentYear = parseInt(e.target.value);
-      await fetchHolidays(import_obsidian4.requestUrl, this.currentYear);
+      await fetchHolidays(import_obsidian5.requestUrl, this.currentYear);
       await this.refresh();
     });
     titleArea.createSpan({ text: "\u5E74", cls: "wl-title-sep" });
@@ -1898,7 +1898,7 @@ var CalendarView = class extends import_obsidian4.ItemView {
     nextBtn.addEventListener("click", () => this.navigateMonth(1));
     const todayBtn = header.createEl("button", { cls: "wl-today-btn", text: "\u4ECA\u65E5" });
     todayBtn.addEventListener("click", async () => {
-      const n = (0, import_obsidian4.moment)();
+      const n = (0, import_obsidian5.moment)();
       this.currentYear = n.year();
       this.currentMonth = n.month() + 1;
       this.selectedDate = n.clone();
@@ -1933,9 +1933,9 @@ var CalendarView = class extends import_obsidian4.ItemView {
     for (const h of headers) {
       headerRow.createDiv({ cls: "wl-cal-cell wl-weekday-header", text: h });
     }
-    const firstDay = (0, import_obsidian4.moment)({ year: this.currentYear, month: this.currentMonth - 1, date: 1 });
+    const firstDay = (0, import_obsidian5.moment)({ year: this.currentYear, month: this.currentMonth - 1, date: 1 });
     const lastDay = firstDay.clone().endOf("month");
-    const today = (0, import_obsidian4.moment)();
+    const today = (0, import_obsidian5.moment)();
     const dowFirst = firstDay.day();
     let startOffset;
     if (weekStartDay === "monday") {
@@ -1991,7 +1991,7 @@ var CalendarView = class extends import_obsidian4.ItemView {
       }
       const dateCopy = cur.clone();
       cell.addEventListener("click", async () => {
-        const today2 = (0, import_obsidian4.moment)();
+        const today2 = (0, import_obsidian5.moment)();
         const navigateTarget = this.plugin.settings.generationMode === "up_to_today" && dateCopy.isAfter(today2, "day") ? today2.clone() : dateCopy.clone();
         this.selectedDate = navigateTarget.clone();
         this.lastUserSelectTime = Date.now();
@@ -2025,7 +2025,7 @@ var CalendarView = class extends import_obsidian4.ItemView {
             if (lines.length === 0) {
               lines.push("\uFF08\u65E0\u8BB0\u5F55\uFF09");
             }
-            new import_obsidian4.Notice(`${dateCopy.format("MM\u6708DD\u65E5")}
+            new import_obsidian5.Notice(`${dateCopy.format("MM\u6708DD\u65E5")}
 ${lines.join("\n")}`, 5e3);
           }, 600);
         }, { passive: true });
@@ -2068,7 +2068,7 @@ ${lines.join("\n")}`, 5e3);
   // ─────────────────────────────────────────────────────
   renderActionButton(container) {
     const actionBar = container.createDiv("wl-action-bar");
-    const today = (0, import_obsidian4.moment)();
+    const today = (0, import_obsidian5.moment)();
     const sel = this.selectedDate;
     let label;
     if (sel && isSameDay(sel, today)) {
@@ -2082,13 +2082,13 @@ ${lines.join("\n")}`, 5e3);
     btn.textContent = label;
     this.actionBtnEl = btn;
     const getTarget = () => {
-      return this.selectedDate ? this.selectedDate.clone() : (0, import_obsidian4.moment)();
+      return this.selectedDate ? this.selectedDate.clone() : (0, import_obsidian5.moment)();
     };
     if (this.plugin.settings.entryMode === "timestamp") {
       btn.addEventListener("click", async (e) => {
         e.stopPropagation();
         const target = getTarget();
-        if (isSameDay(target, (0, import_obsidian4.moment)())) {
+        if (isSameDay(target, (0, import_obsidian5.moment)())) {
           await this.plugin.fileManager.insertTimestampEntry(target);
         } else {
           await this.plugin.fileManager.openAndNavigateToEndOfDate(target);
@@ -2150,14 +2150,14 @@ ${lines.join("\n")}`, 5e3);
         }
         editor.focus();
       } else {
-        const target = this.selectedDate ? this.selectedDate.clone() : (0, import_obsidian4.moment)();
+        const target = this.selectedDate ? this.selectedDate.clone() : (0, import_obsidian5.moment)();
         await this.plugin.fileManager.insertSessionLabel(target, "\u2610 \u5F85\u529E");
         await this.render();
       }
     });
   }
   async renderDailyPoem(container) {
-    const today = (0, import_obsidian4.moment)().format("YYYY-MM-DD");
+    const today = (0, import_obsidian5.moment)().format("YYYY-MM-DD");
     let poem = await fetchDailyPoem();
     if (!poem) {
       poem = getDailyPoem(today);
@@ -2175,7 +2175,7 @@ ${lines.join("\n")}`, 5e3);
     const poem = this.poemData;
     if (!poem)
       return;
-    const modal = new import_obsidian4.Modal(this.app);
+    const modal = new import_obsidian5.Modal(this.app);
     modal.titleEl.setText(poem.source || "\u8BD7\u8BCD\u8D4F\u6790");
     const content = modal.contentEl.createDiv("wl-poem-modal");
     if (poem.fullText && poem.fullText.length > 0) {
@@ -2188,13 +2188,13 @@ ${lines.join("\n")}`, 5e3);
       content.createDiv("wl-poem-modal-body").setText(poem.text);
     }
     content.createDiv("wl-poem-modal-author").setText(`\u2014\u2014 ${poem.author}`);
-    new import_obsidian4.Setting(content).addButton(
+    new import_obsidian5.Setting(content).addButton(
       (btn) => btn.setButtonText("\u{1F4CB} \u590D\u5236\u5168\u6587").setCta().onClick(async () => {
         const copyText = poem.fullText ? poem.fullText.join("\n") + `
 \u2014\u2014 ${poem.author}${poem.source ? " " + poem.source : ""}` : `"${poem.text}"
 \u2014\u2014 ${poem.author}${poem.source ? " " + poem.source : ""}`;
         await navigator.clipboard.writeText(copyText);
-        new import_obsidian4.Notice("\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F");
+        new import_obsidian5.Notice("\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F");
         modal.close();
       })
     );
@@ -2221,7 +2221,7 @@ ${lines.join("\n")}`, 5e3);
   updateButtonTextForDate(previewDate) {
     if (!this.actionBtnEl)
       return;
-    const today = (0, import_obsidian4.moment)();
+    const today = (0, import_obsidian5.moment)();
     const target = previewDate ? previewDate : this.selectedDate ? this.selectedDate : today;
     let label;
     if (isSameDay(target, today)) {
@@ -2318,7 +2318,7 @@ ${lines.join("\n")}`, 5e3);
 };
 
 // src/statistics.ts
-var import_obsidian5 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 var SEARCH_VIEW_TYPE = "work-log-search";
 async function getMonthStats(plugin, year, month) {
   const filePath = plugin.fileManager.getFilePath(year);
@@ -2337,7 +2337,7 @@ async function getMonthStats(plugin, year, month) {
     if (line.startsWith("#### ")) {
       const stripped = line.replace(/^####\s+/, "").trim();
       const datePart = stripped.split(/\s+/)[0];
-      const m = (0, import_obsidian5.moment)(datePart, plugin.settings.dateFormat, true);
+      const m = (0, import_obsidian6.moment)(datePart, plugin.settings.dateFormat, true);
       if (m.isValid() && m.year() === year && m.month() + 1 === month) {
         currentDateInMonth = true;
         datesWithContent;
@@ -2350,7 +2350,7 @@ async function getMonthStats(plugin, year, month) {
         if (lines[i].startsWith("#### ")) {
           const stripped = lines[i].replace(/^####\s+/, "").trim();
           const datePart = stripped.split(/\s+/)[0];
-          const m = (0, import_obsidian5.moment)(datePart, plugin.settings.dateFormat, true);
+          const m = (0, import_obsidian6.moment)(datePart, plugin.settings.dateFormat, true);
           if (m.isValid() && m.year() === year && m.month() + 1 === month) {
             datesWithContent.add(m.format("YYYY-MM-DD"));
           }
@@ -2371,7 +2371,7 @@ async function getMonthStats(plugin, year, month) {
     totalLines
   };
 }
-var SearchView = class extends import_obsidian5.ItemView {
+var SearchView = class extends import_obsidian6.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.keyword = "";
@@ -2455,7 +2455,7 @@ var SearchView = class extends import_obsidian5.ItemView {
         const highlighted = this.highlightKeyword(item.content, this.keyword);
         row.innerHTML = highlighted;
         row.addEventListener("click", async () => {
-          const m = (0, import_obsidian5.moment)(date, "YYYY-MM-DD", true);
+          const m = (0, import_obsidian6.moment)(date, "YYYY-MM-DD", true);
           if (m.isValid()) {
             await this.plugin.fileManager.openAndNavigateToDate(m);
           }
@@ -2476,7 +2476,7 @@ var SearchView = class extends import_obsidian5.ItemView {
 };
 
 // src/main.ts
-var WorkLogPlugin = class extends import_obsidian6.Plugin {
+var WorkLogPlugin = class extends import_obsidian7.Plugin {
   constructor() {
     super(...arguments);
     this.lastSyncedDateKey = null;
@@ -2488,9 +2488,9 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
     await this.loadSettings();
     this.fileManager = new FileManager(this.app, this.settings);
     initBuiltinHolidays();
-    const thisYear = (0, import_obsidian6.moment)().year();
-    fetchHolidays(import_obsidian6.requestUrl, thisYear);
-    fetchHolidays(import_obsidian6.requestUrl, thisYear + 1);
+    const thisYear = (0, import_obsidian7.moment)().year();
+    fetchHolidays(import_obsidian7.requestUrl, thisYear);
+    fetchHolidays(import_obsidian7.requestUrl, thisYear + 1);
     this.registerView(CALENDAR_VIEW_TYPE, (leaf) => new CalendarView(leaf, this));
     this.registerView(SEARCH_VIEW_TYPE, (leaf) => new SearchView(leaf, this));
     this.addSettingTab(new WorkLogSettingTab(this.app, this));
@@ -2535,7 +2535,7 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
       id: "repair-structure",
       name: "\u4FEE\u590D\u5F53\u524D\u5E74\u5EA6\u6587\u4EF6\u7ED3\u6784",
       callback: async () => {
-        const year = (0, import_obsidian6.moment)().year();
+        const year = (0, import_obsidian7.moment)().year();
         await this.fileManager.repairYearStructure(year);
       }
     });
@@ -2552,7 +2552,7 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
       id: "regenerate-year-danger",
       name: "\u91CD\u65B0\u751F\u6210\u5F53\u524D\u5E74\u5EA6\u6587\u4EF6\uFF08\u5371\u9669\uFF1A\u5C06\u6E05\u7A7A\u6240\u6709\u5185\u5BB9\uFF09",
       callback: () => {
-        const year = (0, import_obsidian6.moment)().year();
+        const year = (0, import_obsidian7.moment)().year();
         new ConfirmModal(
           this.app,
           `\u26A0\uFE0F \u5371\u9669\u64CD\u4F5C`,
@@ -2569,7 +2569,7 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
               await this.fileManager.getOrCreateFile(year);
             }
             this.fileManager.invalidateCache(year);
-            new import_obsidian6.Notice(`${year} \u5E74\u5DE5\u4F5C\u65E5\u5FD7\u5DF2\u91CD\u65B0\u751F\u6210`);
+            new import_obsidian7.Notice(`${year} \u5E74\u5DE5\u4F5C\u65E5\u5FD7\u5DF2\u91CD\u65B0\u751F\u6210`);
           }
         ).open();
       }
@@ -2578,9 +2578,9 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
       id: "show-month-stats",
       name: "\u663E\u793A\u6708\u5EA6\u7EDF\u8BA1",
       callback: async () => {
-        const now = (0, import_obsidian6.moment)();
+        const now = (0, import_obsidian7.moment)();
         const stats = await getMonthStats(this, now.year(), now.month() + 1);
-        new import_obsidian6.Notice(
+        new import_obsidian7.Notice(
           `\u{1F4CA} ${stats.year}\u5E74${stats.month}\u6708\u5DE5\u4F5C\u7EDF\u8BA1
   \u8BB0\u5F55\u5929\u6570\uFF1A${stats.recordedDays} \u5929
   \u603B\u6761\u76EE\u6570\uFF1A${stats.totalEntries} \u6761
@@ -2605,7 +2605,7 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
     });
     this.registerEvent(
       this.app.vault.on("modify", (file) => {
-        if (file instanceof import_obsidian6.TFile && file.extension === "md") {
+        if (file instanceof import_obsidian7.TFile && file.extension === "md") {
           const yearMatch = file.basename.match(/(\d{4})/);
           if (yearMatch) {
             this.fileManager.invalidateCache(parseInt(yearMatch[1]));
@@ -2614,7 +2614,7 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
       })
     );
     this.app.workspace.onLayoutReady(async () => {
-      const year = (0, import_obsidian6.moment)().year();
+      const year = (0, import_obsidian7.moment)().year();
       const filePath = this.fileManager.getFilePath(year);
       const existing = this.app.vault.getAbstractFileByPath(filePath);
       if (existing) {
@@ -2668,13 +2668,13 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
       this.fileManager.updateSettings(this.settings);
     }
     if (modeChanged) {
-      const year = (0, import_obsidian6.moment)().year();
+      const year = (0, import_obsidian7.moment)().year();
       if (this.settings.generationMode === "full_year") {
         await this.fileManager.repairYearStructure(year);
-        new import_obsidian6.Notice("\u5DF2\u5207\u6362\u4E3A\u300C\u6BCF\u5E74\u81EA\u52A8\u751F\u6210\u5168\u5E74\u300D\uFF0C\u6587\u4EF6\u5DF2\u8865\u5168\u5230\u5E74\u5E95");
+        new import_obsidian7.Notice("\u5DF2\u5207\u6362\u4E3A\u300C\u6BCF\u5E74\u81EA\u52A8\u751F\u6210\u5168\u5E74\u300D\uFF0C\u6587\u4EF6\u5DF2\u8865\u5168\u5230\u5E74\u5E95");
       } else {
         await this.fileManager.trimAfterToday(year);
-        new import_obsidian6.Notice("\u5DF2\u5207\u6362\u4E3A\u300C\u6BCF\u5929\u65B0\u589E\u5230\u5F53\u524D\u65E5\u300D\uFF0C\u6587\u4EF6\u5DF2\u88C1\u526A\u5230\u5F53\u524D\u65E5");
+        new import_obsidian7.Notice("\u5DF2\u5207\u6362\u4E3A\u300C\u6BCF\u5929\u65B0\u589E\u5230\u5F53\u524D\u65E5\u300D\uFF0C\u6587\u4EF6\u5DF2\u88C1\u526A\u5230\u5F53\u524D\u65E5");
       }
     }
     this.prevGenerationMode = this.settings.generationMode;
@@ -2693,7 +2693,7 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
   // 编辑器光标同步到日历
   // ─────────────────────────────────────────────────────
   syncCursorDateToCalendar() {
-    const view = this.app.workspace.getActiveViewOfType(import_obsidian6.MarkdownView);
+    const view = this.app.workspace.getActiveViewOfType(import_obsidian7.MarkdownView);
     if (!view)
       return;
     const editor = view.editor;
@@ -2736,7 +2736,7 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
   // 核心操作
   // ─────────────────────────────────────────────────────
   async openTodayLog() {
-    const today = (0, import_obsidian6.moment)();
+    const today = (0, import_obsidian7.moment)();
     await this.fileManager.openAndNavigateToDate(today);
     for (const leaf of this.app.workspace.getLeavesOfType(CALENDAR_VIEW_TYPE)) {
       const view = leaf.view;
@@ -2799,7 +2799,7 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
       {
         text: "\u{1F527} \u4FEE\u590D\u5F53\u524D\u5E74\u5EA6\u7ED3\u6784",
         action: async () => {
-          await this.fileManager.repairYearStructure((0, import_obsidian6.moment)().year());
+          await this.fileManager.repairYearStructure((0, import_obsidian7.moment)().year());
         }
       }
     ];
@@ -2819,7 +2819,7 @@ var WorkLogPlugin = class extends import_obsidian6.Plugin {
     setTimeout(() => document.addEventListener("click", close), 0);
   }
 };
-var DatePickerModal = class extends import_obsidian6.Modal {
+var DatePickerModal = class extends import_obsidian7.Modal {
   constructor(app, onConfirm) {
     super(app);
     this.onConfirm = onConfirm;
@@ -2831,19 +2831,19 @@ var DatePickerModal = class extends import_obsidian6.Modal {
     const inputEl = contentEl.createEl("input", {
       type: "date",
       cls: "wl-date-input",
-      value: (0, import_obsidian6.moment)().format("YYYY-MM-DD")
+      value: (0, import_obsidian7.moment)().format("YYYY-MM-DD")
     });
     const btnRow = contentEl.createDiv("wl-modal-btns");
     const confirmBtn = btnRow.createEl("button", { cls: "mod-cta", text: "\u8DF3\u8F6C" });
     const cancelBtn = btnRow.createEl("button", { text: "\u53D6\u6D88" });
     confirmBtn.addEventListener("click", () => {
       const val = inputEl.value;
-      const m = (0, import_obsidian6.moment)(val, "YYYY-MM-DD", true);
+      const m = (0, import_obsidian7.moment)(val, "YYYY-MM-DD", true);
       if (m.isValid()) {
         this.close();
         this.onConfirm(m);
       } else {
-        new import_obsidian6.Notice("\u65E0\u6548\u7684\u65E5\u671F\u683C\u5F0F");
+        new import_obsidian7.Notice("\u65E0\u6548\u7684\u65E5\u671F\u683C\u5F0F");
       }
     });
     cancelBtn.addEventListener("click", () => this.close());
@@ -2857,7 +2857,7 @@ var DatePickerModal = class extends import_obsidian6.Modal {
     this.contentEl.empty();
   }
 };
-var YearPickerModal = class extends import_obsidian6.Modal {
+var YearPickerModal = class extends import_obsidian7.Modal {
   constructor(app, onConfirm) {
     super(app);
     this.onConfirm = onConfirm;
@@ -2867,7 +2867,7 @@ var YearPickerModal = class extends import_obsidian6.Modal {
     contentEl.empty();
     contentEl.createEl("h3", { text: "\u9009\u62E9\u5E74\u4EFD" });
     const select = contentEl.createEl("select", { cls: "wl-year-sel" });
-    const currentYear = (0, import_obsidian6.moment)().year();
+    const currentYear = (0, import_obsidian7.moment)().year();
     for (let y = currentYear - 5; y <= currentYear + 2; y++) {
       const opt = select.createEl("option", { value: String(y), text: String(y) });
       if (y === currentYear)
@@ -2887,7 +2887,7 @@ var YearPickerModal = class extends import_obsidian6.Modal {
     this.contentEl.empty();
   }
 };
-var ConfirmModal = class extends import_obsidian6.Modal {
+var ConfirmModal = class extends import_obsidian7.Modal {
   constructor(app, title, message, onConfirm) {
     super(app);
     this.title = title;
@@ -2915,7 +2915,7 @@ var ConfirmModal = class extends import_obsidian6.Modal {
     this.contentEl.empty();
   }
 };
-var ExportModal = class extends import_obsidian6.Modal {
+var ExportModal = class extends import_obsidian7.Modal {
   constructor(app, plugin) {
     super(app);
     this.plugin = plugin;
@@ -2924,7 +2924,7 @@ var ExportModal = class extends import_obsidian6.Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.createEl("h3", { text: "\u5BFC\u51FA\u5DE5\u4F5C\u65E5\u5FD7" });
-    const now = (0, import_obsidian6.moment)();
+    const now = (0, import_obsidian7.moment)();
     const yearRow = contentEl.createDiv("wl-form-row");
     yearRow.createEl("label", { text: "\u5E74\u4EFD\uFF1A" });
     const yearSel = yearRow.createEl("select");
@@ -2972,7 +2972,7 @@ var ExportModal = class extends import_obsidian6.Modal {
       const month = rangeVal === "year" ? void 0 : parseInt(rangeVal);
       const content = await this.plugin.fileManager.exportRange(year, fmt, month);
       if (!content) {
-        new import_obsidian6.Notice("\u672A\u627E\u5230\u5BF9\u5E94\u7684\u5DE5\u4F5C\u65E5\u5FD7\u6587\u4EF6");
+        new import_obsidian7.Notice("\u672A\u627E\u5230\u5BF9\u5E94\u7684\u5DE5\u4F5C\u65E5\u5FD7\u6587\u4EF6");
         return;
       }
       const ext = fmt === "markdown" ? "md" : fmt;
@@ -2980,7 +2980,7 @@ var ExportModal = class extends import_obsidian6.Modal {
       const fileName = `${year}\u5DE5\u4F5C\u65E5\u5FD7${suffix}.${ext}`;
       const filePath = `${this.plugin.settings.logDirectory}/${fileName}`;
       await this.plugin.app.vault.adapter.write(filePath, content);
-      new import_obsidian6.Notice(`\u5DF2\u5BFC\u51FA\u5230\uFF1A${filePath}`);
+      new import_obsidian7.Notice(`\u5DF2\u5BFC\u51FA\u5230\uFF1A${filePath}`);
       this.close();
     });
     cancelBtn.addEventListener("click", () => this.close());

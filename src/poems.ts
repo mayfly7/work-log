@@ -2,6 +2,9 @@
  * 每日诗词库——经典古诗词及名句
  * 每首包含：作者、正文/名句、出处
  */
+
+import { requestUrl } from "obsidian";
+
 export interface Poem {
   author: string;
   text: string;
@@ -83,9 +86,8 @@ export async function fetchDailyPoem(): Promise<Poem | null> {
   if (cacheDate === today && cachedPoem) return cachedPoem;
 
   try {
-    const resp = await fetch("https://poetry.palemoky.com/api/poems/random");
-    const json = await resp.json();
-    const d = json.data as PoemApiData;
+    const resp = await requestUrl({ url: "https://poetry.palemoky.com/api/poems/random" });
+    const d = resp.json.data as PoemApiData;
 
     // 正文总字数不超过 56 字（七律上限）则显示全文
     const fullText = d.content.join("");
