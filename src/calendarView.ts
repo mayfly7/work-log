@@ -503,10 +503,10 @@ export class CalendarView extends ItemView {
     // 完整正文
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
-      poem.fullText.forEach((line, i) => {
-        const isLast = i === poem.fullText!.length - 1;
-        body.createSpan({ text: line + (isLast ? "" : "，") });
-      });
+      const lines = poem.fullText.map((line, i) =>
+        i < poem.fullText!.length - 1 ? line + "，" : line
+      );
+      body.setText(lines.join(""));
     } else {
       content.createDiv("wl-poem-modal-body").setText(poem.text);
     }

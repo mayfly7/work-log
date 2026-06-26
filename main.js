@@ -2180,10 +2180,10 @@ ${lines.join("\n")}`, 5e3);
     const content = modal.contentEl.createDiv("wl-poem-modal");
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
-      poem.fullText.forEach((line, i) => {
-        const isLast = i === poem.fullText.length - 1;
-        body.createSpan({ text: line + (isLast ? "" : "\uFF0C") });
-      });
+      const lines = poem.fullText.map(
+        (line, i) => i < poem.fullText.length - 1 ? line + "\uFF0C" : line
+      );
+      body.setText(lines.join(""));
     } else {
       content.createDiv("wl-poem-modal-body").setText(poem.text);
     }
