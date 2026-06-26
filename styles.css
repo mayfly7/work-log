@@ -864,3 +864,23 @@ mark.wl-highlight {
   color: var(--text-muted);
   text-align: right;
 }
+
+.wl-daily-poem:hover {
+  background: var(--background-modifier-hover);
+}
+
+/* 诗词弹窗 */
+.wl-poem-modal-body {
+  font-size: 1.1em;
+  line-height: 2;
+  margin: 16px 0;
+  padding: 12px 8px;
+  color: var(--text-normal);
+  text-align: center;
+}
+
+.wl-poem-modal-author {
+  text-align: right;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}

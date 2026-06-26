@@ -6,6 +6,8 @@ export interface Poem {
   author: string;
   text: string;
   source?: string;
+  /** 完整正文（API 返回的全诗），用于点击展开 */
+  fullText?: string[];
 }
 
 export const POEMS: Poem[] = [
@@ -107,6 +109,7 @@ export async function fetchDailyPoem(): Promise<Poem | null> {
       author: `${d.dynasty.name} · ${d.author.name}`,
       text,
       source: `《${d.title}》`,
+      fullText: d.content, // 保存完整正文
     };
     cachedPoem = poem;
     cacheDate = today;

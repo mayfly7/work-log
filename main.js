@@ -1743,7 +1743,9 @@ async function fetchDailyPoem() {
     const poem = {
       author: `${d.dynasty.name} \xB7 ${d.author.name}`,
       text,
-      source: `\u300A${d.title}\u300B`
+      source: `\u300A${d.title}\u300B`,
+      fullText: d.content
+      // 保存完整正文
     };
     cachedPoem = poem;
     cacheDate = today;
@@ -1775,6 +1777,18 @@ var CalendarView = class extends import_obsidian4.ItemView {
     /** 用户最后一次手动选中日期的时间戳，用于防止光标同步立即覆盖 */
     this.lastUserSelectTime = 0;
     this.tooltipGen = 0;
+    // ─────────────────────────────────────────────────────
+    // Tooltip (desktop only)
+    // ─────────────────────────────────────────────────────
+    // ────────────────────────────────────────────
+    // Hover preview helpers
+    // ────────────────────────────────────────────
+    // ────────────────────────────────────────────
+    // 待办列表（日历下方）
+    // ────────────────────────────────────────────
+    // Daily Poem
+    // ────────────────────────────────────────────
+    this.poemData = null;
     this.plugin = plugin;
     const now = (0, import_obsidian4.moment)();
     this.currentYear = now.year();
@@ -2142,28 +2156,49 @@ ${lines.join("\n")}`, 5e3);
       }
     });
   }
-  // ─────────────────────────────────────────────────────
-  // Tooltip (desktop only)
-  // ─────────────────────────────────────────────────────
-  // ────────────────────────────────────────────
-  // Hover preview helpers
-  // ────────────────────────────────────────────
-  // ────────────────────────────────────────────
-  // 待办列表（日历下方）
-  // ────────────────────────────────────────────
-  // Daily Poem
-  // ────────────────────────────────────────────
   async renderDailyPoem(container) {
     const today = (0, import_obsidian4.moment)().format("YYYY-MM-DD");
     let poem = await fetchDailyPoem();
     if (!poem) {
       poem = getDailyPoem(today);
     }
+    this.poemData = poem;
     const section = container.createDiv("wl-daily-poem");
     const text = section.createDiv("wl-poem-text");
     text.textContent = `"${poem.text}"`;
     const meta = section.createDiv("wl-poem-meta");
     meta.textContent = `\u2014\u2014 ${poem.author}${poem.source ? " " + poem.source : ""}`;
+    section.style.cursor = "pointer";
+    section.addEventListener("click", () => this.showPoemModal());
+  }
+  showPoemModal() {
+    const poem = this.poemData;
+    if (!poem)
+      return;
+    const modal = new import_obsidian4.Modal(this.app);
+    modal.titleEl.setText(poem.source || "\u8BD7\u8BCD\u8D4F\u6790");
+    const content = modal.contentEl.createDiv("wl-poem-modal");
+    if (poem.fullText && poem.fullText.length > 0) {
+      const body = content.createDiv("wl-poem-modal-body");
+      poem.fullText.forEach((line, i) => {
+        const isLast = i === poem.fullText.length - 1;
+        body.createSpan({ text: line + (isLast ? "" : "\uFF0C") });
+      });
+    } else {
+      content.createDiv("wl-poem-modal-body").setText(poem.text);
+    }
+    content.createDiv("wl-poem-modal-author").setText(`\u2014\u2014 ${poem.author}`);
+    new import_obsidian4.Setting(content).addButton(
+      (btn) => btn.setButtonText("\u{1F4CB} \u590D\u5236\u5168\u6587").setCta().onClick(async () => {
+        const copyText = poem.fullText ? poem.fullText.join("\n") + `
+\u2014\u2014 ${poem.author}${poem.source ? " " + poem.source : ""}` : `"${poem.text}"
+\u2014\u2014 ${poem.author}${poem.source ? " " + poem.source : ""}`;
+        await navigator.clipboard.writeText(copyText);
+        new import_obsidian4.Notice("\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F");
+        modal.close();
+      })
+    );
+    modal.open();
   }
   // ────────────────────────────────────────────
   renderTodoList(container, allTodos) {

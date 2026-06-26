@@ -1,8 +1,9 @@
-import { ItemView, WorkspaceLeaf, moment, requestUrl, Notice } from "obsidian";
+import { ItemView, WorkspaceLeaf, moment, requestUrl, Notice, Modal, Setting } from "obsidian";
 import type WorkLogPlugin from "./main";
 import { isSameDay } from "./dateUtils";
 import { getHolidayName, fetchHolidays } from "./holidays";
 import { getDailyPoem, fetchDailyPoem } from "./poems";
+import type { Poem } from "./poems";
 
 export const CALENDAR_VIEW_TYPE = "work-log-calendar";
 
@@ -468,6 +469,8 @@ export class CalendarView extends ItemView {
   // Daily Poem
   // ────────────────────────────────────────────
 
+  private poemData: Poem | null = null;
+
   private async renderDailyPoem(container: HTMLElement): Promise<void> {
     const today = moment().format("YYYY-MM-DD");
     // 优先尝试 API，失败则用本地诗词
@@ -475,11 +478,59 @@ export class CalendarView extends ItemView {
     if (!poem) {
       poem = getDailyPoem(today);
     }
+    this.poemData = poem;
+
     const section = container.createDiv("wl-daily-poem");
     const text = section.createDiv("wl-poem-text");
     text.textContent = `"${poem.text}"`;
     const meta = section.createDiv("wl-poem-meta");
     meta.textContent = `—— ${poem.author}${poem.source ? " " + poem.source : ""}`;
+
+    // 点击展开全文
+    section.style.cursor = "pointer";
+    section.addEventListener("click", () => this.showPoemModal());
+  }
+
+  private showPoemModal(): void {
+    const poem = this.poemData;
+    if (!poem) return;
+
+    const modal = new Modal(this.app);
+    modal.titleEl.setText(poem.source || "诗词赏析");
+
+    const content = modal.contentEl.createDiv("wl-poem-modal");
+
+    // 完整正文
+    if (poem.fullText && poem.fullText.length > 0) {
+      const body = content.createDiv("wl-poem-modal-body");
+      poem.fullText.forEach((line, i) => {
+        const isLast = i === poem.fullText!.length - 1;
+        body.createSpan({ text: line + (isLast ? "" : "，") });
+      });
+    } else {
+      content.createDiv("wl-poem-modal-body").setText(poem.text);
+    }
+
+    // 作者
+    content.createDiv("wl-poem-modal-author").setText(`—— ${poem.author}`);
+
+    // 复制按钮
+    new Setting(content)
+      .addButton((btn) =>
+        btn
+          .setButtonText("📋 复制全文")
+          .setCta()
+          .onClick(async () => {
+            const copyText = poem.fullText
+              ? poem.fullText.join("\n") + `\n—— ${poem.author}${poem.source ? " " + poem.source : ""}`
+              : `"${poem.text}"\n—— ${poem.author}${poem.source ? " " + poem.source : ""}`;
+            await navigator.clipboard.writeText(copyText);
+            new Notice("已复制到剪贴板");
+            modal.close();
+          })
+      );
+
+    modal.open();
   }
 
   // ────────────────────────────────────────────
