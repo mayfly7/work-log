@@ -1289,7 +1289,7 @@ var FileManager = class {
       if (isSession) {
         lines.splice(insertIdx, 0, entry, "");
         await this.app.vault.modify(file, lines.join("\n"));
-        const cursorLine = insertIdx + 2;
+        const cursorLine = insertIdx + 1;
         const leaf = this.app.workspace.getLeaf(false);
         await leaf.openFile(file);
         this.scrollToLineWithRetry(leaf, cursorLine, 0);

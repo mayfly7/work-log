@@ -1171,7 +1171,7 @@ export class FileManager {
         // 上午/下午：插入分隔线 + 空行
         lines.splice(insertIdx, 0, entry, "");
         await this.app.vault.modify(file, lines.join("\n"));
-        const cursorLine = insertIdx + 2; // 分隔线 + 空行 → 光标在空行上
+        const cursorLine = insertIdx + 1; // 分隔线后的空行上
         const leaf = this.app.workspace.getLeaf(false);
         await leaf.openFile(file);
         this.scrollToLineWithRetry(leaf, cursorLine, 0);
