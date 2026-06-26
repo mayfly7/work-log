@@ -2,6 +2,7 @@ import { ItemView, WorkspaceLeaf, moment, requestUrl, Notice } from "obsidian";
 import type WorkLogPlugin from "./main";
 import { isSameDay } from "./dateUtils";
 import { getHolidayName, fetchHolidays } from "./holidays";
+import { getDailyPoem } from "./poems";
 
 export const CALENDAR_VIEW_TYPE = "work-log-calendar";
 
@@ -85,6 +86,11 @@ export class CalendarView extends ItemView {
       grid.addEventListener("mouseleave", () => this.removeTooltip());
     }
     this.renderActionButton(container);
+
+    // 每日诗词
+    if (this.plugin.settings.showDailyPoem) {
+      this.renderDailyPoem(container);
+    }
 
     // 加载所有未完成待办（全文件，非仅选中日期）
     const allTodos = await this.plugin.fileManager.getAllIncompleteTodos(this.currentYear);
@@ -458,6 +464,20 @@ export class CalendarView extends ItemView {
 
   // ────────────────────────────────────────────
   // 待办列表（日历下方）
+  // ────────────────────────────────────────────
+  // Daily Poem
+  // ────────────────────────────────────────────
+
+  private renderDailyPoem(container: HTMLElement): void {
+    const today = moment().format("YYYY-MM-DD");
+    const poem = getDailyPoem(today);
+    const section = container.createDiv("wl-daily-poem");
+    const text = section.createDiv("wl-poem-text");
+    text.textContent = `"${poem.text}"`;
+    const meta = section.createDiv("wl-poem-meta");
+    meta.textContent = `—— ${poem.author}${poem.source ? " " + poem.source : ""}`;
+  }
+
   // ────────────────────────────────────────────
 
   private renderTodoList(container: HTMLElement, allTodos: { date: string; todos: { text: string; line: number }[] }[]): void {

@@ -24,6 +24,8 @@ export interface WorkLogSettings {
   showHolidays: boolean;
   /** 文件头部模板 */
   fileHeaderTemplate: string;
+  /** 是否显示每日随机诗词 */
+  showDailyPoem: boolean;
 }
 
 export const DEFAULT_SETTINGS: WorkLogSettings = {
@@ -38,6 +40,7 @@ export const DEFAULT_SETTINGS: WorkLogSettings = {
   showContentDots: true,
   showHolidays: true,
   fileHeaderTemplate: "# {{year}}年工作日志",
+  showDailyPoem: true,
 };
 
 export class WorkLogSettingTab extends PluginSettingTab {
@@ -238,6 +241,18 @@ export class WorkLogSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.showHolidays)
           .onChange(async (value) => {
             this.plugin.settings.showHolidays = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("每日诗词")
+      .setDesc("在日历下方显示每日随机经典诗词")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.showDailyPoem)
+          .onChange(async (value) => {
+            this.plugin.settings.showDailyPoem = value;
             await this.plugin.saveSettings();
           })
       );
