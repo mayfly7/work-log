@@ -2,7 +2,7 @@ import { ItemView, WorkspaceLeaf, moment, requestUrl, Notice, Modal, Setting } f
 import type WorkLogPlugin from "./main";
 import { isSameDay } from "./dateUtils";
 import { getHolidayName, fetchHolidays } from "./holidays";
-import { getDailyPoem, fetchDailyPoem, formatCouplets } from "./poems";
+import { getDailyPoem, fetchDailyPoem, formatCouplets, formatPoemLines } from "./poems";
 import type { Poem } from "./poems";
 
 export const CALENDAR_VIEW_TYPE = "work-log-calendar";
@@ -513,7 +513,8 @@ export class CalendarView extends ItemView {
     // 完整正文（两句一行，律诗格式）
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
-      body.setText(formatCouplets(poem.fullText).join("\n"));
+      // 弹窗中逐句显示，避免折行
+      body.setText(formatPoemLines(poem.fullText).join("\n"));
       body.style.userSelect = "text";
     } else {
       const body = content.createDiv("wl-poem-modal-body");
@@ -537,7 +538,7 @@ export class CalendarView extends ItemView {
             const authorLine = `${poem.author}\n\n`;
             let body: string;
             if (poem.fullText) {
-              body = formatCouplets(poem.fullText).join("\n");
+              body = formatPoemLines(poem.fullText).join("\n");
             } else {
               body = poem.text;
             }

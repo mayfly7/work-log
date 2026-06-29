@@ -153,3 +153,18 @@ export function formatCouplets(lines: string[]): string[] {
   }
   return couplets;
 }
+
+/**
+ * 将诗句数组格式化为逐句分行（弹窗显示用）
+ * 奇句加逗号，偶句加句号，已有标点则跳过
+ */
+export function formatPoemLines(lines: string[]): string[] {
+  const ends = /[。？！，]$/;
+  return lines.map((line, i) => {
+    // 最后一句不加标点
+    if (i === lines.length - 1) return line;
+    // 偶句索引（0-based 奇数）加句号，奇句加逗号
+    const punct = i % 2 === 0 ? "，" : "。";
+    return ends.test(line) ? line : line + punct;
+  });
+}

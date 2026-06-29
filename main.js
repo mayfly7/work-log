@@ -1786,6 +1786,15 @@ function formatCouplets(lines) {
   }
   return couplets;
 }
+function formatPoemLines(lines) {
+  const ends = /[。？！，]$/;
+  return lines.map((line, i) => {
+    if (i === lines.length - 1)
+      return line;
+    const punct = i % 2 === 0 ? "\uFF0C" : "\u3002";
+    return ends.test(line) ? line : line + punct;
+  });
+}
 
 // src/calendarView.ts
 var CALENDAR_VIEW_TYPE = "work-log-calendar";
@@ -2211,7 +2220,7 @@ ${lines.join("\n")}`, 5e3);
     const content = modal.contentEl.createDiv("wl-poem-modal");
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
-      body.setText(formatCouplets(poem.fullText).join("\n"));
+      body.setText(formatPoemLines(poem.fullText).join("\n"));
       body.style.userSelect = "text";
     } else {
       const body = content.createDiv("wl-poem-modal-body");
@@ -2230,7 +2239,7 @@ ${lines.join("\n")}`, 5e3);
 `;
         let body;
         if (poem.fullText) {
-          body = formatCouplets(poem.fullText).join("\n");
+          body = formatPoemLines(poem.fullText).join("\n");
         } else {
           body = poem.text;
         }
