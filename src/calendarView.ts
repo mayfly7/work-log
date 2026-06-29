@@ -44,6 +44,10 @@ export class CalendarView extends ItemView {
     this.registerDomEvent(document, "scroll", () => this.removeTooltip(), true);
     // 点击文档任意位置清除 tooltip
     this.registerDomEvent(document, "click", () => this.removeTooltip());
+    // 仅在打开时加载一次诗词
+    if (this.plugin.settings.showDailyPoem) {
+      await this.loadPoem();
+    }
     await this.refresh();
   }
 
@@ -470,24 +474,26 @@ export class CalendarView extends ItemView {
   // ────────────────────────────────────────────
 
   private poemData: Poem | null = null;
-  private poemGen = 0;
 
-  private async renderDailyPoem(container: HTMLElement): Promise<void> {
-    const today = moment().format("YYYY-MM-DD");
-    const gen = ++this.poemGen;
-    // 优先尝试 API，失败则随机选本地诗词
+  /** 仅在 onOpen 时调用一次，从 API 或本地加载诗词 */
+  private async loadPoem(): Promise<void> {
     let poem = await fetchDailyPoem();
-    if (this.poemGen !== gen) return; // 渲染已过期
     if (!poem) {
       poem = getRandomPoem();
     }
     this.poemData = poem;
+  }
+
+  /** 渲染已加载的诗词到 DOM（切换日期不会重新获取） */
+  private renderDailyPoem(container: HTMLElement): void {
+    if (!this.poemData) return;
+    const poem = this.poemData;
 
     const section = container.createDiv("wl-daily-poem");
     const text = section.createDiv("wl-poem-text");
     text.textContent = poem.text;
     const meta = section.createDiv("wl-poem-meta");
-  meta.textContent = `—— ${poem.author}`;
+    meta.textContent = `—— ${poem.author}`;
 
     // 点击展开全文
     section.style.cursor = "pointer";

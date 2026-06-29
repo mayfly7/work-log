@@ -1809,7 +1809,6 @@ var CalendarView = class extends import_obsidian5.ItemView {
     // Daily Poem
     // ────────────────────────────────────────────
     this.poemData = null;
-    this.poemGen = 0;
     this.plugin = plugin;
     const now = (0, import_obsidian5.moment)();
     this.currentYear = now.year();
@@ -1828,6 +1827,9 @@ var CalendarView = class extends import_obsidian5.ItemView {
   async onOpen() {
     this.registerDomEvent(document, "scroll", () => this.removeTooltip(), true);
     this.registerDomEvent(document, "click", () => this.removeTooltip());
+    if (this.plugin.settings.showDailyPoem) {
+      await this.loadPoem();
+    }
     await this.refresh();
   }
   async onClose() {
@@ -2177,16 +2179,19 @@ ${lines.join("\n")}`, 5e3);
       }
     });
   }
-  async renderDailyPoem(container) {
-    const today = (0, import_obsidian5.moment)().format("YYYY-MM-DD");
-    const gen = ++this.poemGen;
+  /** 仅在 onOpen 时调用一次，从 API 或本地加载诗词 */
+  async loadPoem() {
     let poem = await fetchDailyPoem();
-    if (this.poemGen !== gen)
-      return;
     if (!poem) {
       poem = getRandomPoem();
     }
     this.poemData = poem;
+  }
+  /** 渲染已加载的诗词到 DOM（切换日期不会重新获取） */
+  renderDailyPoem(container) {
+    if (!this.poemData)
+      return;
+    const poem = this.poemData;
     const section = container.createDiv("wl-daily-poem");
     const text = section.createDiv("wl-poem-text");
     text.textContent = poem.text;
