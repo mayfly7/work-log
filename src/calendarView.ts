@@ -501,15 +501,20 @@ export class CalendarView extends ItemView {
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 
-    // 完整正文
+    // 完整正文（两句一行，律诗格式）
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
-      const lines = poem.fullText.map((line, i) => {
-        if (i === poem.fullText!.length - 1) return line;
-        return line.endsWith("。") || line.endsWith("？") || line.endsWith("！")
-          ? line : line + "，";
-      });
-      body.setText(lines.join(""));
+      const couplets: string[] = [];
+      for (let i = 0; i < poem.fullText.length; i += 2) {
+        const a = poem.fullText[i];
+        const b = poem.fullText[i + 1];
+        if (!b) {
+          couplets.push(a);
+        } else {
+          couplets.push(a + "，" + b + "。");
+        }
+      }
+      body.setText(couplets.join("\n"));
     } else {
       content.createDiv("wl-poem-modal-body").setText(poem.text);
     }
@@ -526,12 +531,18 @@ export class CalendarView extends ItemView {
           .onClick(async () => {
             const titleLine = poem.source ? `${poem.source}\n` : "";
             const authorLine = `${poem.author}\n\n`;
-            const body = poem.fullText
-              ? poem.fullText.map((line, i) => {
-                  if (i === poem.fullText!.length - 1) return line;
-                  return /[。？！，]$/.test(line) ? line : line + "，";
-                }).join("")
-              : poem.text;
+            let body: string;
+            if (poem.fullText) {
+              const couplets: string[] = [];
+              for (let i = 0; i < poem.fullText.length; i += 2) {
+                const a = poem.fullText[i];
+                const b = poem.fullText[i + 1];
+                couplets.push(b ? a + "，" + b + "。" : a);
+              }
+              body = couplets.join("\n");
+            } else {
+              body = poem.text;
+            }
             const copyText = titleLine + authorLine + body;
             await navigator.clipboard.writeText(copyText);
             new Notice("已复制到剪贴板");

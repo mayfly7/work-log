@@ -93,10 +93,14 @@ export async function fetchDailyPoem(skipCache = false): Promise<Poem | null> {
     const lines = d.content;
     const isShort = lines.length <= 8 && lines.join("").length <= 56;
     const selected = isShort ? lines : lines.slice(0, 2);
-    const text = selected.map((line, i) => {
-      if (i === selected.length - 1) return line.replace(/[。？！，]$/, "");
-      return /[。？！，]$/.test(line) ? line : line + "，";
-    }).join("");
+    // 两句一行拼接
+    const couplets: string[] = [];
+    for (let i = 0; i < selected.length; i += 2) {
+      const a = selected[i];
+      const b = selected[i + 1];
+      couplets.push(b ? a + "，" + b : a);
+    }
+    const text = couplets.join("，");
 
     const poem: Poem = {
       author: `${d.dynasty.name} · ${d.author.name}`,

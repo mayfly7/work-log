@@ -1736,11 +1736,13 @@ async function fetchDailyPoem(skipCache = false) {
     const lines = d.content;
     const isShort = lines.length <= 8 && lines.join("").length <= 56;
     const selected = isShort ? lines : lines.slice(0, 2);
-    const text = selected.map((line, i) => {
-      if (i === selected.length - 1)
-        return line.replace(/[。？！，]$/, "");
-      return /[。？！，]$/.test(line) ? line : line + "\uFF0C";
-    }).join("");
+    const couplets = [];
+    for (let i = 0; i < selected.length; i += 2) {
+      const a = selected[i];
+      const b = selected[i + 1];
+      couplets.push(b ? a + "\uFF0C" + b : a);
+    }
+    const text = couplets.join("\uFF0C");
     const poem = {
       author: `${d.dynasty.name} \xB7 ${d.author.name}`,
       text,
@@ -2182,12 +2184,17 @@ ${lines.join("\n")}`, 5e3);
     const content = modal.contentEl.createDiv("wl-poem-modal");
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
-      const lines = poem.fullText.map((line, i) => {
-        if (i === poem.fullText.length - 1)
-          return line;
-        return line.endsWith("\u3002") || line.endsWith("\uFF1F") || line.endsWith("\uFF01") ? line : line + "\uFF0C";
-      });
-      body.setText(lines.join(""));
+      const couplets = [];
+      for (let i = 0; i < poem.fullText.length; i += 2) {
+        const a = poem.fullText[i];
+        const b = poem.fullText[i + 1];
+        if (!b) {
+          couplets.push(a);
+        } else {
+          couplets.push(a + "\uFF0C" + b + "\u3002");
+        }
+      }
+      body.setText(couplets.join("\n"));
     } else {
       content.createDiv("wl-poem-modal-body").setText(poem.text);
     }
@@ -2199,11 +2206,18 @@ ${lines.join("\n")}`, 5e3);
         const authorLine = `${poem.author}
 
 `;
-        const body = poem.fullText ? poem.fullText.map((line, i) => {
-          if (i === poem.fullText.length - 1)
-            return line;
-          return /[。？！，]$/.test(line) ? line : line + "\uFF0C";
-        }).join("") : poem.text;
+        let body;
+        if (poem.fullText) {
+          const couplets = [];
+          for (let i = 0; i < poem.fullText.length; i += 2) {
+            const a = poem.fullText[i];
+            const b = poem.fullText[i + 1];
+            couplets.push(b ? a + "\uFF0C" + b + "\u3002" : a);
+          }
+          body = couplets.join("\n");
+        } else {
+          body = poem.text;
+        }
         const copyText = titleLine + authorLine + body;
         await navigator.clipboard.writeText(copyText);
         new import_obsidian5.Notice("\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F");
