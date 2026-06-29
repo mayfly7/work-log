@@ -2196,7 +2196,6 @@ ${lines.join("\n")}`, 5e3);
     section.addEventListener("click", () => this.showPoemModal());
   }
   showPoemModal() {
-    var _a, _b, _c;
     const poem = this.poemData;
     if (!poem)
       return;
@@ -2204,11 +2203,17 @@ ${lines.join("\n")}`, 5e3);
     modal.titleEl.setText(poem.source || "\u8BD7\u8BCD\u8D4F\u6790");
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
-    modal.containerEl.style.margin = "auto";
-    (_a = modal.containerEl.parentElement) == null ? void 0 : _a.style.setProperty("display", "flex");
-    (_b = modal.containerEl.parentElement) == null ? void 0 : _b.style.setProperty("align-items", "center");
-    (_c = modal.containerEl.parentElement) == null ? void 0 : _c.style.setProperty("justify-content", "center");
     modal.contentEl.style.textAlign = "center";
+    requestAnimationFrame(() => {
+      const bg = modal.containerEl.closest(".modal-bg") || modal.containerEl.parentElement;
+      if (bg) {
+        bg.style.display = "flex";
+        bg.style.alignItems = "center";
+        bg.style.justifyContent = "center";
+      }
+      modal.containerEl.style.marginLeft = "auto";
+      modal.containerEl.style.marginRight = "auto";
+    });
     const content = modal.contentEl.createDiv("wl-poem-modal");
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
