@@ -502,14 +502,11 @@ export class CalendarView extends ItemView {
     modal.containerEl.style.maxWidth = "500px";
 
     // 弹窗在屏幕居中
-    requestAnimationFrame(() => {
-      const bg = modal.containerEl.closest(".modal-bg") as HTMLElement;
-      if (bg) {
-        bg.style.display = "flex";
-        bg.style.alignItems = "center";
-        bg.style.justifyContent = "center";
-      }
-    });
+    modal.containerEl.style.position = "absolute";
+    modal.containerEl.style.top = "50%";
+    modal.containerEl.style.left = "50%";
+    modal.containerEl.style.transform = "translate(-50%, -50%)";
+    modal.containerEl.style.margin = "0";
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 
