@@ -2193,14 +2193,20 @@ ${lines.join("\n")}`, 5e3);
     modal.titleEl.setText(poem.source || "\u8BD7\u8BCD\u8D4F\u6790");
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
+    modal.contentEl.style.textAlign = "center";
     const content = modal.contentEl.createDiv("wl-poem-modal");
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
       body.setText(formatCouplets(poem.fullText).join("\n"));
+      body.style.userSelect = "text";
     } else {
-      content.createDiv("wl-poem-modal-body").setText(poem.text);
+      const body = content.createDiv("wl-poem-modal-body");
+      body.setText(poem.text);
+      body.style.userSelect = "text";
     }
-    content.createDiv("wl-poem-modal-author").setText(`\u2014\u2014 ${poem.author}`);
+    const author = content.createDiv("wl-poem-modal-author");
+    author.setText(`\u2014\u2014 ${poem.author}`);
+    author.style.userSelect = "text";
     new import_obsidian5.Setting(content).addButton(
       (btn) => btn.setButtonText("\u{1F4CB} \u590D\u5236\u5168\u6587").setCta().onClick(async () => {
         const titleLine = poem.source ? `${poem.source}

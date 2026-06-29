@@ -498,9 +498,10 @@ export class CalendarView extends ItemView {
 
     const modal = new Modal(this.app);
     modal.titleEl.setText(poem.source || "诗词赏析");
-    // 弹窗加宽，诗句居中展示
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
+    // 内容区居中
+    modal.contentEl.style.textAlign = "center";
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 
@@ -508,12 +509,17 @@ export class CalendarView extends ItemView {
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
       body.setText(formatCouplets(poem.fullText).join("\n"));
+      body.style.userSelect = "text";
     } else {
-      content.createDiv("wl-poem-modal-body").setText(poem.text);
+      const body = content.createDiv("wl-poem-modal-body");
+      body.setText(poem.text);
+      body.style.userSelect = "text";
     }
 
     // 作者
-    content.createDiv("wl-poem-modal-author").setText(`—— ${poem.author}`);
+    const author = content.createDiv("wl-poem-modal-author");
+    author.setText(`—— ${poem.author}`);
+    author.style.userSelect = "text";
 
     // 复制按钮
     new Setting(content)
