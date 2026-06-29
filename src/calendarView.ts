@@ -500,6 +500,10 @@ export class CalendarView extends ItemView {
     modal.titleEl.setText(poem.source || "诗词赏析");
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
+    modal.containerEl.style.margin = "auto";
+    modal.containerEl.parentElement?.style.setProperty("display", "flex");
+    modal.containerEl.parentElement?.style.setProperty("align-items", "center");
+    modal.containerEl.parentElement?.style.setProperty("justify-content", "center");
     // 内容区居中
     modal.contentEl.style.textAlign = "center";
 
