@@ -499,32 +499,18 @@ export class CalendarView extends ItemView {
     const poem = this.poemData;
     if (!poem) return;
 
-    // 扩展 Modal 重写 onOpen，用 rAF 等 DOM 挂载后再居中
-    class PoemModal extends Modal {
-      onOpen(): void {
-        super.onOpen();
-        // 强制 bg 居中，Obsidian 默认 align-items:flex-start + padding-top
-        const apply = () => {
-          const bg = document.querySelector(".modal-bg") as HTMLElement;
-          if (bg) {
-            bg.style.display = "flex";
-            bg.style.alignItems = "center";
-            bg.style.justifyContent = "center";
-            bg.style.paddingTop = "0";
-          }
-        };
-        requestAnimationFrame(() => {
-          apply();
-          // 双帧保障，部分主题会在 rAF 后重置样式
-          requestAnimationFrame(apply);
-        });
-      }
-    }
-
-    const modal = new PoemModal(this.app);
+    const modal = new Modal(this.app);
     modal.titleEl.setText(poem.source || "诗词赏析");
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
+
+    // container 用 fixed 定位到视口中央（不依赖 .modal-bg 布局）
+    modal.containerEl.style.position = "fixed";
+    modal.containerEl.style.top = "50%";
+    modal.containerEl.style.left = "50%";
+    modal.containerEl.style.transform = "translate(-50%, -50%)";
+    modal.containerEl.style.margin = "0";
+    modal.containerEl.style.zIndex = "10";
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 
