@@ -76,8 +76,14 @@ interface PoemApiData {
 
 /**
  * 从 API 获取随机诗词，失败时返回 null
+ * @param skipCache 跳过每日缓存
  */
-export async function fetchDailyPoem(): Promise<Poem | null> {
+let poemCache: Poem | null = null;
+let poemCacheDate = "";
+
+export async function fetchDailyPoem(skipCache = false): Promise<Poem | null> {
+  const today = new Date().toISOString().slice(0, 10);
+  if (!skipCache && poemCacheDate === today && poemCache) return poemCache;
 
   try {
     let data: PoemApiData | null = null;
@@ -106,6 +112,8 @@ export async function fetchDailyPoem(): Promise<Poem | null> {
       source: `《${d.title}》`,
       fullText: d.content, // 保存完整正文
     };
+    poemCache = poem;
+    poemCacheDate = today;
     return poem;
   } catch {
     return null;
@@ -117,6 +125,20 @@ export async function fetchDailyPoem(): Promise<Poem | null> {
  */
 export function getRandomPoem(): Poem {
   const index = Math.floor(Math.random() * POEMS.length);
+  return POEMS[index];
+}
+
+/**
+ * 基于日期固定选取一首本地诗词（每日刷新模式用）
+ */
+export function getDailyPoem(): Poem {
+  const today = new Date().toISOString().slice(0, 10);
+  let hash = 0;
+  for (let i = 0; i < today.length; i++) {
+    hash = ((hash << 5) - hash) + today.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % POEMS.length;
   return POEMS[index];
 }
 

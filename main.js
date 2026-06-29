@@ -1724,7 +1724,12 @@ var POEMS = [
   { author: "\u9648\u5B50\u6602", text: "\u524D\u4E0D\u89C1\u53E4\u4EBA\uFF0C\u540E\u4E0D\u89C1\u6765\u8005\u3002\u5FF5\u5929\u5730\u4E4B\u60A0\u60A0\uFF0C\u72EC\u6006\u7136\u800C\u6D95\u4E0B\u3002", source: "\u300A\u767B\u5E7D\u5DDE\u53F0\u6B4C\u300B" },
   { author: "\u5F20\u4E5D\u9F84", text: "\u6D77\u4E0A\u751F\u660E\u6708\uFF0C\u5929\u6DAF\u5171\u6B64\u65F6\u3002", source: "\u300A\u671B\u6708\u6000\u8FDC\u300B" }
 ];
-async function fetchDailyPoem() {
+var poemCache = null;
+var poemCacheDate = "";
+async function fetchDailyPoem(skipCache = false) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (!skipCache && poemCacheDate === today && poemCache)
+    return poemCache;
   try {
     let data = null;
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -1749,6 +1754,8 @@ async function fetchDailyPoem() {
       fullText: d.content
       // 保存完整正文
     };
+    poemCache = poem;
+    poemCacheDate = today;
     return poem;
   } catch (e) {
     return null;
@@ -1756,6 +1763,16 @@ async function fetchDailyPoem() {
 }
 function getRandomPoem() {
   const index = Math.floor(Math.random() * POEMS.length);
+  return POEMS[index];
+}
+function getDailyPoem() {
+  const today = new Date().toISOString().slice(0, 10);
+  let hash = 0;
+  for (let i = 0; i < today.length; i++) {
+    hash = (hash << 5) - hash + today.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % POEMS.length;
   return POEMS[index];
 }
 function formatCouplets(lines) {
@@ -2186,9 +2203,10 @@ ${lines.join("\n")}`, 5e3);
   }
   /** 仅在 onOpen 时调用一次，从 API 或本地加载诗词，并创建独立 DOM */
   async loadPoem() {
-    let poem = await fetchDailyPoem();
+    const skipCache = this.plugin.settings.refreshPoemOnOpen;
+    let poem = await fetchDailyPoem(skipCache);
     if (!poem) {
-      poem = getRandomPoem();
+      poem = skipCache ? getRandomPoem() : getDailyPoem();
     }
     this.poemData = poem;
     this.poemSectionEl = this.containerEl.createDiv("wl-daily-poem");

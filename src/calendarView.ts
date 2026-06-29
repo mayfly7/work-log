@@ -2,7 +2,7 @@ import { ItemView, WorkspaceLeaf, moment, requestUrl, Notice, Modal, Setting } f
 import type WorkLogPlugin from "./main";
 import { isSameDay } from "./dateUtils";
 import { getHolidayName, fetchHolidays } from "./holidays";
-import { getRandomPoem, fetchDailyPoem, formatCouplets, formatPoemLines } from "./poems";
+import { getRandomPoem, getDailyPoem, fetchDailyPoem, formatCouplets, formatPoemLines } from "./poems";
 import type { Poem } from "./poems";
 
 export const CALENDAR_VIEW_TYPE = "work-log-calendar";
@@ -483,9 +483,10 @@ export class CalendarView extends ItemView {
 
   /** 仅在 onOpen 时调用一次，从 API 或本地加载诗词，并创建独立 DOM */
   private async loadPoem(): Promise<void> {
-    let poem = await fetchDailyPoem();
+    const skipCache = this.plugin.settings.refreshPoemOnOpen;
+    let poem = await fetchDailyPoem(skipCache);
     if (!poem) {
-      poem = getRandomPoem();
+      poem = skipCache ? getRandomPoem() : getDailyPoem();
     }
     this.poemData = poem;
 
