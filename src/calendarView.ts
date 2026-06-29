@@ -474,7 +474,8 @@ export class CalendarView extends ItemView {
   private async renderDailyPoem(container: HTMLElement): Promise<void> {
     const today = moment().format("YYYY-MM-DD");
     // 优先尝试 API，失败则用本地诗词
-    let poem = await fetchDailyPoem();
+    const skipCache = this.plugin.settings.refreshPoemOnOpen;
+    let poem = await fetchDailyPoem(skipCache);
     if (!poem) {
       poem = getDailyPoem(today);
     }

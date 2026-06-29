@@ -43,7 +43,8 @@ var DEFAULT_SETTINGS = {
   showContentDots: true,
   showHolidays: true,
   fileHeaderTemplate: "# {{year}}\u5E74\u5DE5\u4F5C\u65E5\u5FD7",
-  showDailyPoem: true
+  showDailyPoem: true,
+  refreshPoemOnOpen: false
 };
 var WorkLogSettingTab = class extends import_obsidian.PluginSettingTab {
   constructor(app, plugin) {
@@ -140,6 +141,12 @@ var WorkLogSettingTab = class extends import_obsidian.PluginSettingTab {
     new import_obsidian.Setting(containerEl).setName("\u6BCF\u65E5\u8BD7\u8BCD").setDesc("\u5728\u65E5\u5386\u4E0B\u65B9\u663E\u793A\u6BCF\u65E5\u968F\u673A\u7ECF\u5178\u8BD7\u8BCD").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.showDailyPoem).onChange(async (value) => {
         this.plugin.settings.showDailyPoem = value;
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian.Setting(containerEl).setName("\u6BCF\u6B21\u5237\u65B0\u8BD7\u8BCD").setDesc("\u6BCF\u6B21\u6253\u5F00\u6216\u5207\u6362\u65E5\u5386\u65F6\u968F\u673A\u66F4\u6362\u4E00\u9996\u8BD7\u8BCD\uFF08\u9ED8\u8BA4\u6BCF\u5929\u56FA\u5B9A\u4E00\u9996\uFF09").addToggle(
+      (toggle) => toggle.setValue(this.plugin.settings.refreshPoemOnOpen).onChange(async (value) => {
+        this.plugin.settings.refreshPoemOnOpen = value;
         await this.plugin.saveSettings();
       })
     );
@@ -1719,9 +1726,9 @@ var POEMS = [
 ];
 var cachedPoem = null;
 var cacheDate = "";
-async function fetchDailyPoem() {
+async function fetchDailyPoem(skipCache = false) {
   const today = new Date().toISOString().slice(0, 10);
-  if (cacheDate === today && cachedPoem)
+  if (!skipCache && cacheDate === today && cachedPoem)
     return cachedPoem;
   try {
     const resp = await (0, import_obsidian4.requestUrl)({ url: "https://poetry.palemoky.com/api/poems/random" });
@@ -2147,7 +2154,8 @@ ${lines.join("\n")}`, 5e3);
   }
   async renderDailyPoem(container) {
     const today = (0, import_obsidian5.moment)().format("YYYY-MM-DD");
-    let poem = await fetchDailyPoem();
+    const skipCache = this.plugin.settings.refreshPoemOnOpen;
+    let poem = await fetchDailyPoem(skipCache);
     if (!poem) {
       poem = getDailyPoem(today);
     }

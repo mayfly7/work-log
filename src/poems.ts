@@ -76,14 +76,14 @@ interface PoemApiData {
 
 /**
  * 从 API 获取随机诗词，失败时返回 null
- * 每日缓存，避免重复请求
+ * @param skipCache 跳过每日缓存，强制刷新
  */
 let cachedPoem: Poem | null = null;
 let cacheDate = "";
 
-export async function fetchDailyPoem(): Promise<Poem | null> {
+export async function fetchDailyPoem(skipCache = false): Promise<Poem | null> {
   const today = new Date().toISOString().slice(0, 10);
-  if (cacheDate === today && cachedPoem) return cachedPoem;
+  if (!skipCache && cacheDate === today && cachedPoem) return cachedPoem;
 
   try {
     const resp = await requestUrl({ url: "https://poetry.palemoky.com/api/poems/random" });
