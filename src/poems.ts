@@ -86,10 +86,21 @@ export async function fetchDailyPoem(skipCache = false): Promise<Poem | null> {
   if (!skipCache && cacheDate === today && cachedPoem) return cachedPoem;
 
   try {
-    const resp = await requestUrl({ url: "https://poetry.palemoky.com/api/poems/random" });
-    const d = resp.json.data as PoemApiData;
+    let data: PoemApiData | null = null;
+    // 最多重试 3 次，过滤掉古文长赋
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const resp = await requestUrl({ url: "https://poetry.palemoky.com/api/poems/random" });
+      const d = resp.json.data as PoemApiData;
+      // 过滤条件：超过 16 句 或 超过 200 字视为古文/赋，跳过重试
+      if (d.content.length <= 16 && d.content.join("").length <= 200) {
+        data = d;
+        break;
+      }
+    }
+    if (!data) return null;
 
     // ≤8 句且 ≤56 字显示全文，长诗显示前两句
+    const d = data;
     const lines = d.content;
     const isShort = lines.length <= 8 && lines.join("").length <= 56;
     const selected = isShort ? lines : lines.slice(0, 2);

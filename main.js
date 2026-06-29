@@ -1731,8 +1731,18 @@ async function fetchDailyPoem(skipCache = false) {
   if (!skipCache && cacheDate === today && cachedPoem)
     return cachedPoem;
   try {
-    const resp = await (0, import_obsidian4.requestUrl)({ url: "https://poetry.palemoky.com/api/poems/random" });
-    const d = resp.json.data;
+    let data = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const resp = await (0, import_obsidian4.requestUrl)({ url: "https://poetry.palemoky.com/api/poems/random" });
+      const d2 = resp.json.data;
+      if (d2.content.length <= 16 && d2.content.join("").length <= 200) {
+        data = d2;
+        break;
+      }
+    }
+    if (!data)
+      return null;
+    const d = data;
     const lines = d.content;
     const isShort = lines.length <= 8 && lines.join("").length <= 56;
     const selected = isShort ? lines : lines.slice(0, 2);
