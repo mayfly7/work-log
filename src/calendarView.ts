@@ -53,6 +53,7 @@ export class CalendarView extends ItemView {
 
   async onClose(): Promise<void> {
     this.removeTooltip();
+    this.poemSectionEl = null;
   }
 
   async refresh(): Promise<void> {
@@ -69,9 +70,8 @@ export class CalendarView extends ItemView {
     this.removeTooltip();
     const container = this.containerEl.children[1] as HTMLElement;
 
-    // 保存诗词节点（它在 this.containerEl 中，不在 calendar 容器内）
-    // 临时取下避免 empty() 销毁，之后挂回 calendar 容器内
-    const poemEl = this.containerEl.querySelector(".wl-daily-poem") as HTMLElement;
+    // 保存诗词节点（避免被 empty() 销毁，直接引用不依赖 DOM 查询）
+    const poemEl = this.poemSectionEl;
     if (poemEl) poemEl.remove();
     container.empty();
     container.addClass("work-log-calendar");
@@ -479,6 +479,7 @@ export class CalendarView extends ItemView {
   // ────────────────────────────────────────────
 
   private poemData: Poem | null = null;
+  private poemSectionEl: HTMLElement | null = null;
 
   /** 仅在 onOpen 时调用一次，从 API 或本地加载诗词，并创建独立 DOM */
   private async loadPoem(): Promise<void> {
@@ -488,18 +489,14 @@ export class CalendarView extends ItemView {
     }
     this.poemData = poem;
 
-    // 清理旧的诗词区域
-    const old = this.containerEl.querySelector(".wl-daily-poem");
-    if (old) old.remove();
-
-    // 直接在 containerEl 中创建诗词区域（不在 calendar 容器内，切换日期不受影响）
-    const section = this.containerEl.createDiv("wl-daily-poem");
-    const text = section.createDiv("wl-poem-text");
+    // 创建诗词 DOM 节点
+    this.poemSectionEl = this.containerEl.createDiv("wl-daily-poem");
+    const text = this.poemSectionEl.createDiv("wl-poem-text");
     text.textContent = poem.text;
-    const meta = section.createDiv("wl-poem-meta");
+    const meta = this.poemSectionEl.createDiv("wl-poem-meta");
     meta.textContent = `—— ${poem.author}`;
-    section.style.cursor = "pointer";
-    section.addEventListener("click", () => this.showPoemModal());
+    this.poemSectionEl.style.cursor = "pointer";
+    this.poemSectionEl.addEventListener("click", () => this.showPoemModal());
   }
 
   private showPoemModal(): void {

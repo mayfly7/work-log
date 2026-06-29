@@ -1809,6 +1809,7 @@ var CalendarView = class extends import_obsidian5.ItemView {
     // Daily Poem
     // ────────────────────────────────────────────
     this.poemData = null;
+    this.poemSectionEl = null;
     this.plugin = plugin;
     const now = (0, import_obsidian5.moment)();
     this.currentYear = now.year();
@@ -1834,6 +1835,7 @@ var CalendarView = class extends import_obsidian5.ItemView {
   }
   async onClose() {
     this.removeTooltip();
+    this.poemSectionEl = null;
   }
   async refresh() {
     try {
@@ -1845,7 +1847,7 @@ var CalendarView = class extends import_obsidian5.ItemView {
   async render() {
     this.removeTooltip();
     const container = this.containerEl.children[1];
-    const poemEl = this.containerEl.querySelector(".wl-daily-poem");
+    const poemEl = this.poemSectionEl;
     if (poemEl)
       poemEl.remove();
     container.empty();
@@ -2189,16 +2191,13 @@ ${lines.join("\n")}`, 5e3);
       poem = getRandomPoem();
     }
     this.poemData = poem;
-    const old = this.containerEl.querySelector(".wl-daily-poem");
-    if (old)
-      old.remove();
-    const section = this.containerEl.createDiv("wl-daily-poem");
-    const text = section.createDiv("wl-poem-text");
+    this.poemSectionEl = this.containerEl.createDiv("wl-daily-poem");
+    const text = this.poemSectionEl.createDiv("wl-poem-text");
     text.textContent = poem.text;
-    const meta = section.createDiv("wl-poem-meta");
+    const meta = this.poemSectionEl.createDiv("wl-poem-meta");
     meta.textContent = `\u2014\u2014 ${poem.author}`;
-    section.style.cursor = "pointer";
-    section.addEventListener("click", () => this.showPoemModal());
+    this.poemSectionEl.style.cursor = "pointer";
+    this.poemSectionEl.addEventListener("click", () => this.showPoemModal());
   }
   showPoemModal() {
     const poem = this.poemData;
