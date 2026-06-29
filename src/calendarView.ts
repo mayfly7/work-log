@@ -485,7 +485,7 @@ export class CalendarView extends ItemView {
     const text = section.createDiv("wl-poem-text");
     text.textContent = poem.text;
     const meta = section.createDiv("wl-poem-meta");
-    meta.textContent = `—— ${poem.author}${poem.source ? " " + poem.source : ""}`;
+  meta.textContent = `—— ${poem.author}`;
 
     // 点击展开全文
     section.style.cursor = "pointer";

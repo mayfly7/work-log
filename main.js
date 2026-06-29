@@ -2181,7 +2181,7 @@ ${lines.join("\n")}`, 5e3);
     const text = section.createDiv("wl-poem-text");
     text.textContent = poem.text;
     const meta = section.createDiv("wl-poem-meta");
-    meta.textContent = `\u2014\u2014 ${poem.author}${poem.source ? " " + poem.source : ""}`;
+    meta.textContent = `\u2014\u2014 ${poem.author}`;
     section.style.cursor = "pointer";
     section.addEventListener("click", () => this.showPoemModal());
   }
