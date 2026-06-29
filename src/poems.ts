@@ -93,14 +93,7 @@ export async function fetchDailyPoem(skipCache = false): Promise<Poem | null> {
     const lines = d.content;
     const isShort = lines.length <= 8 && lines.join("").length <= 56;
     const selected = isShort ? lines : lines.slice(0, 2);
-    // 两句一行拼接
-    const couplets: string[] = [];
-    for (let i = 0; i < selected.length; i += 2) {
-      const a = selected[i];
-      const b = selected[i + 1];
-      couplets.push(b ? a + "，" + b : a);
-    }
-    const text = couplets.join("，");
+    const text = formatCouplets(selected).join("，");
 
     const poem: Poem = {
       author: `${d.dynasty.name} · ${d.author.name}`,
@@ -127,4 +120,25 @@ export function getDailyPoem(seed: string): Poem {
   }
   const index = Math.abs(hash) % POEMS.length;
   return POEMS[index];
+}
+
+/**
+ * 将诗句数组格式化为两句一联
+ * 智能处理已有标点，避免 `。，` 和 `。。` 重复
+ */
+export function formatCouplets(lines: string[]): string[] {
+  const ends = /[。？！，]$/;
+  const couplets: string[] = [];
+  for (let i = 0; i < lines.length; i += 2) {
+    const a = lines[i];
+    const b = lines[i + 1];
+    if (!b) {
+      couplets.push(a);
+    } else {
+      const sep = ends.test(a) ? "" : "，";
+      const end = ends.test(b) ? "" : "。";
+      couplets.push(a + sep + b + end);
+    }
+  }
+  return couplets;
 }

@@ -1736,13 +1736,7 @@ async function fetchDailyPoem(skipCache = false) {
     const lines = d.content;
     const isShort = lines.length <= 8 && lines.join("").length <= 56;
     const selected = isShort ? lines : lines.slice(0, 2);
-    const couplets = [];
-    for (let i = 0; i < selected.length; i += 2) {
-      const a = selected[i];
-      const b = selected[i + 1];
-      couplets.push(b ? a + "\uFF0C" + b : a);
-    }
-    const text = couplets.join("\uFF0C");
+    const text = formatCouplets(selected).join("\uFF0C");
     const poem = {
       author: `${d.dynasty.name} \xB7 ${d.author.name}`,
       text,
@@ -1765,6 +1759,22 @@ function getDailyPoem(seed) {
   }
   const index = Math.abs(hash) % POEMS.length;
   return POEMS[index];
+}
+function formatCouplets(lines) {
+  const ends = /[。？！，]$/;
+  const couplets = [];
+  for (let i = 0; i < lines.length; i += 2) {
+    const a = lines[i];
+    const b = lines[i + 1];
+    if (!b) {
+      couplets.push(a);
+    } else {
+      const sep = ends.test(a) ? "" : "\uFF0C";
+      const end = ends.test(b) ? "" : "\u3002";
+      couplets.push(a + sep + b + end);
+    }
+  }
+  return couplets;
 }
 
 // src/calendarView.ts
@@ -2184,17 +2194,7 @@ ${lines.join("\n")}`, 5e3);
     const content = modal.contentEl.createDiv("wl-poem-modal");
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
-      const couplets = [];
-      for (let i = 0; i < poem.fullText.length; i += 2) {
-        const a = poem.fullText[i];
-        const b = poem.fullText[i + 1];
-        if (!b) {
-          couplets.push(a);
-        } else {
-          couplets.push(a + "\uFF0C" + b + "\u3002");
-        }
-      }
-      body.setText(couplets.join("\n"));
+      body.setText(formatCouplets(poem.fullText).join("\n"));
     } else {
       content.createDiv("wl-poem-modal-body").setText(poem.text);
     }
@@ -2208,13 +2208,7 @@ ${lines.join("\n")}`, 5e3);
 `;
         let body;
         if (poem.fullText) {
-          const couplets = [];
-          for (let i = 0; i < poem.fullText.length; i += 2) {
-            const a = poem.fullText[i];
-            const b = poem.fullText[i + 1];
-            couplets.push(b ? a + "\uFF0C" + b + "\u3002" : a);
-          }
-          body = couplets.join("\n");
+          body = formatCouplets(poem.fullText).join("\n");
         } else {
           body = poem.text;
         }

@@ -2,7 +2,7 @@ import { ItemView, WorkspaceLeaf, moment, requestUrl, Notice, Modal, Setting } f
 import type WorkLogPlugin from "./main";
 import { isSameDay } from "./dateUtils";
 import { getHolidayName, fetchHolidays } from "./holidays";
-import { getDailyPoem, fetchDailyPoem } from "./poems";
+import { getDailyPoem, fetchDailyPoem, formatCouplets } from "./poems";
 import type { Poem } from "./poems";
 
 export const CALENDAR_VIEW_TYPE = "work-log-calendar";
@@ -504,17 +504,7 @@ export class CalendarView extends ItemView {
     // 完整正文（两句一行，律诗格式）
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
-      const couplets: string[] = [];
-      for (let i = 0; i < poem.fullText.length; i += 2) {
-        const a = poem.fullText[i];
-        const b = poem.fullText[i + 1];
-        if (!b) {
-          couplets.push(a);
-        } else {
-          couplets.push(a + "，" + b + "。");
-        }
-      }
-      body.setText(couplets.join("\n"));
+      body.setText(formatCouplets(poem.fullText).join("\n"));
     } else {
       content.createDiv("wl-poem-modal-body").setText(poem.text);
     }
@@ -533,13 +523,7 @@ export class CalendarView extends ItemView {
             const authorLine = `${poem.author}\n\n`;
             let body: string;
             if (poem.fullText) {
-              const couplets: string[] = [];
-              for (let i = 0; i < poem.fullText.length; i += 2) {
-                const a = poem.fullText[i];
-                const b = poem.fullText[i + 1];
-                couplets.push(b ? a + "，" + b + "。" : a);
-              }
-              body = couplets.join("\n");
+              body = formatCouplets(poem.fullText).join("\n");
             } else {
               body = poem.text;
             }
