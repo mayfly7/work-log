@@ -904,11 +904,10 @@ mark.wl-highlight {
   padding: 0;
 }
 
-/* 诗词弹窗视口居中（fixed 定位，不依赖父容器布局） */
-.modal-bg:has(.wl-poem-modal) .modal-container {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  margin: 0 !important;
+/* 诗词弹窗居中：强制 .modal-bg flex 布局 + 居中 */
+.modal-bg:has(.wl-poem-modal) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-top: 0 !important;
 }
