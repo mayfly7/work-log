@@ -500,8 +500,16 @@ export class CalendarView extends ItemView {
     modal.titleEl.setText(poem.source || "诗词赏析");
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
-    // 内容区居中
-    modal.contentEl.style.textAlign = "center";
+
+    // 弹窗在屏幕居中
+    requestAnimationFrame(() => {
+      const bg = modal.containerEl.closest(".modal-bg") as HTMLElement;
+      if (bg) {
+        bg.style.display = "flex";
+        bg.style.alignItems = "center";
+        bg.style.justifyContent = "center";
+      }
+    });
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 

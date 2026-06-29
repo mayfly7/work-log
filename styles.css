@@ -903,3 +903,10 @@ mark.wl-highlight {
   border: none;
   padding: 0;
 }
+
+/* 诗词弹窗在屏幕居中（非文字居中） */
+.modal-bg:has(.wl-poem-modal) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
