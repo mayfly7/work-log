@@ -870,17 +870,26 @@ mark.wl-highlight {
 }
 
 /* 诗词弹窗 */
+.wl-poem-modal {
+  padding: 8px 0;
+}
+
 .wl-poem-modal-body {
-  font-size: 1.1em;
-  line-height: 2;
-  margin: 16px 0;
-  padding: 12px 8px;
+  font-size: 1.15em;
+  line-height: 2.2;
+  margin: 20px 16px;
+  padding: 16px;
   color: var(--text-normal);
   text-align: center;
+  white-space: pre-line;
+  border-left: 3px solid var(--text-accent);
+  background: var(--background-primary-alt);
+  border-radius: var(--radius-s);
 }
 
 .wl-poem-modal-author {
-  text-align: right;
+  text-align: center;
   color: var(--text-muted);
-  margin-bottom: 16px;
+  margin: 8px 0 20px;
+  font-size: 0.9em;
 }

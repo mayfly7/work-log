@@ -498,6 +498,9 @@ export class CalendarView extends ItemView {
 
     const modal = new Modal(this.app);
     modal.titleEl.setText(poem.source || "诗词赏析");
+    // 弹窗加宽，诗句居中展示
+    modal.containerEl.style.minWidth = "360px";
+    modal.containerEl.style.maxWidth = "500px";
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 
