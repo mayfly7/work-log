@@ -499,24 +499,25 @@ export class CalendarView extends ItemView {
     const poem = this.poemData;
     if (!poem) return;
 
-    const modal = new Modal(this.app);
+    // 扩展 Modal 重写 onOpen，在初始化时就设置居中
+    class PoemModal extends Modal {
+      onOpen(): void {
+        super.onOpen();
+        const bg = this.containerEl.closest(".modal-bg") as HTMLElement;
+        if (bg) {
+          bg.style.position = "fixed";
+          bg.style.inset = "0";
+          bg.style.display = "flex";
+          bg.style.alignItems = "center";
+          bg.style.justifyContent = "center";
+        }
+      }
+    }
+
+    const modal = new PoemModal(this.app);
     modal.titleEl.setText(poem.source || "诗词赏析");
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
-
-    // 强制 .modal-bg 覆盖全屏 + flex 居中
-    const origOnOpen = modal.onOpen;
-    modal.onOpen = () => {
-      origOnOpen.call(modal);
-      const bg = document.querySelector(".modal-bg") as HTMLElement;
-      if (bg) {
-        bg.style.position = "fixed";
-        bg.style.inset = "0";
-        bg.style.display = "flex";
-        bg.style.alignItems = "center";
-        bg.style.justifyContent = "center";
-      }
-    };
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 
