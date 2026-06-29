@@ -89,9 +89,9 @@ export async function fetchDailyPoem(): Promise<Poem | null> {
     const resp = await requestUrl({ url: "https://poetry.palemoky.com/api/poems/random" });
     const d = resp.json.data as PoemApiData;
 
-    // 绝句或短诗显示全文，律诗/长诗显示前两句
+    // ≤8 句且 ≤56 字显示全文，长诗显示前两句
     const lines = d.content;
-    const isShort = lines.length <= 4 && lines.join("").length <= 40;
+    const isShort = lines.length <= 8 && lines.join("").length <= 56;
     const text = isShort
       ? lines.join("，").replace(/[。？！]$/, "")
       : lines.slice(0, 2).join("，");

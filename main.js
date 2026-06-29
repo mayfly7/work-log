@@ -1727,7 +1727,7 @@ async function fetchDailyPoem() {
     const resp = await (0, import_obsidian4.requestUrl)({ url: "https://poetry.palemoky.com/api/poems/random" });
     const d = resp.json.data;
     const lines = d.content;
-    const isShort = lines.length <= 4 && lines.join("").length <= 40;
+    const isShort = lines.length <= 8 && lines.join("").length <= 56;
     const text = isShort ? lines.join("\uFF0C").replace(/[。？！]$/, "") : lines.slice(0, 2).join("\uFF0C");
     const poem = {
       author: `${d.dynasty.name} \xB7 ${d.author.name}`,
