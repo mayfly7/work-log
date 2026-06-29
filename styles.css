@@ -904,7 +904,10 @@ mark.wl-highlight {
   padding: 0;
 }
 
-/* 诗词弹窗居中 */
+/* 诗词弹窗居中 + 透明遮罩消除灰边 */
+.modal-bg:has(.wl-poem-modal) {
+  background: transparent !important;
+}
 .modal-bg:has(.wl-poem-modal) .modal-container {
   position: fixed !important;
   top: 50% !important;

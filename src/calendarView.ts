@@ -508,13 +508,21 @@ export class CalendarView extends ItemView {
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
 
-    // 直接对弹窗自身使用 absolute + translate 居中（验证有效的方案）
+    // 直接对弹窗自身使用 fixed + translate 居中（验证有效的方案）
     const c = modal.containerEl.style;
     c.setProperty("position", "fixed", "important");
     c.setProperty("top", "50%", "important");
     c.setProperty("left", "50%", "important");
     c.setProperty("transform", "translate(-50%, -50%)", "important");
     c.setProperty("margin", "0", "important");
+
+    // 去掉 .modal-bg 的深色遮罩，消除灰边
+    requestAnimationFrame(() => {
+      const bg = modal.containerEl.parentElement as HTMLElement;
+      if (bg && bg.classList.contains("modal-bg")) {
+        bg.style.setProperty("background", "transparent", "important");
+      }
+    });
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 

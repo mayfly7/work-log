@@ -2213,6 +2213,12 @@ ${lines.join("\n")}`, 5e3);
     c.setProperty("left", "50%", "important");
     c.setProperty("transform", "translate(-50%, -50%)", "important");
     c.setProperty("margin", "0", "important");
+    requestAnimationFrame(() => {
+      const bg = modal.containerEl.parentElement;
+      if (bg && bg.classList.contains("modal-bg")) {
+        bg.style.setProperty("background", "transparent", "important");
+      }
+    });
     const content = modal.contentEl.createDiv("wl-poem-modal");
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
