@@ -69,8 +69,10 @@ export class CalendarView extends ItemView {
     this.removeTooltip();
     const container = this.containerEl.children[1] as HTMLElement;
 
-    // 保存诗词节点，empty() 后重新挂回，保持紧贴日历
-    const poemEl = container.querySelector(".wl-daily-poem");
+    // 保存诗词节点（它在 this.containerEl 中，不在 calendar 容器内）
+    // 临时取下避免 empty() 销毁，之后挂回 calendar 容器内
+    const poemEl = this.containerEl.querySelector(".wl-daily-poem") as HTMLElement;
+    if (poemEl) poemEl.remove();
     container.empty();
     container.addClass("work-log-calendar");
 
