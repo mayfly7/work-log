@@ -504,17 +504,19 @@ export class CalendarView extends ItemView {
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
 
-    // 强制居中：fixed 定位到视口中央
-    modal.containerEl.style.position = "fixed";
-    modal.containerEl.style.top = "50%";
-    modal.containerEl.style.left = "50%";
-    modal.containerEl.style.transform = "translate(-50%, -50%)";
-    modal.containerEl.style.margin = "0";
-    modal.containerEl.style.border = "none";
-    modal.containerEl.style.boxShadow = "var(--shadow-l)";
-    // 确保在遮罩层之上
+    // 强制居中：fixed 定位 + CSS important 优先级
+    const c = modal.containerEl.style;
+    c.setProperty("position", "fixed", "important");
+    c.setProperty("top", "50%", "important");
+    c.setProperty("left", "50%", "important");
+    c.setProperty("transform", "translate(-50%, -50%)", "important");
+    c.setProperty("margin", "0", "important");
+    c.setProperty("border", "none", "important");
+    // 宽度不能依赖 flex 父容器，必须显式设定
+    c.setProperty("width", "500px", "important");
+    c.setProperty("max-width", "90vw", "important");
     const zIdx = getComputedStyle(document.body).getPropertyValue("--layer-modal");
-    modal.containerEl.style.zIndex = zIdx || "100";
+    c.setProperty("z-index", zIdx || "100", "important");
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 

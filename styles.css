@@ -904,11 +904,13 @@ mark.wl-highlight {
   padding: 0;
 }
 
-/* 诗词弹窗居中（JS 用 fixed+translate，CSS 兜底） */
+/* 诗词弹窗居中（setProperty important，覆盖主题默认样式） */
 .modal-bg:has(.wl-poem-modal) .modal-container {
   position: fixed !important;
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
   margin: 0 !important;
+  width: 500px !important;
+  max-width: 90vw !important;
 }
