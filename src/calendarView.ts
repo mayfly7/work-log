@@ -504,30 +504,17 @@ export class CalendarView extends ItemView {
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
 
-    // 注入临时样式强制居中（:has 可能在 Obsidian Electron 中不支持）
-    const style = document.createElement("style");
-    style.id = "wl-poem-modal-center";
-    style.textContent = `
-      .modal-bg.wl-poem-center {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding-top: 0 !important;
-      }
-    `;
-    document.head.appendChild(style);
-
-    // 延迟一帧等 DOM 挂载，找到当前 .modal-bg 并加类名
-    requestAnimationFrame(() => {
-      const allBgs = document.querySelectorAll(".modal-bg");
-      const bg = allBgs[allBgs.length - 1] as HTMLElement;
-      if (bg) bg.classList.add("wl-poem-center");
-    });
-
-    // 关闭时清理临时样式
-    modal.onClose = () => {
-      document.getElementById("wl-poem-modal-center")?.remove();
-    };
+    // 强制居中：fixed 定位到视口中央
+    modal.containerEl.style.position = "fixed";
+    modal.containerEl.style.top = "50%";
+    modal.containerEl.style.left = "50%";
+    modal.containerEl.style.transform = "translate(-50%, -50%)";
+    modal.containerEl.style.margin = "0";
+    modal.containerEl.style.border = "none";
+    modal.containerEl.style.boxShadow = "var(--shadow-l)";
+    // 确保在遮罩层之上
+    const zIdx = getComputedStyle(document.body).getPropertyValue("--layer-modal");
+    modal.containerEl.style.zIndex = zIdx || "100";
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 

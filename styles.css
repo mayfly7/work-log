@@ -904,10 +904,11 @@ mark.wl-highlight {
   padding: 0;
 }
 
-/* 诗词弹窗居中（通过 JS 动态加 .wl-poem-center 类名触发） */
-.modal-bg.wl-poem-center {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding-top: 0 !important;
+/* 诗词弹窗居中（JS 用 fixed+translate，CSS 兜底） */
+.modal-bg:has(.wl-poem-modal) .modal-container {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
 }
