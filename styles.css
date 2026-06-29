@@ -904,13 +904,10 @@ mark.wl-highlight {
   padding: 0;
 }
 
-/* 诗词弹窗居中（setProperty important，覆盖主题默认样式） */
-.modal-bg:has(.wl-poem-modal) .modal-container {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  margin: 0 !important;
-  width: 500px !important;
-  max-width: 90vw !important;
+/* 诗词弹窗居中（:has 兜底，主流用 JS setTimeout 设置 .modal-bg） */
+.modal-bg:has(.wl-poem-modal) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-top: 0 !important;
 }

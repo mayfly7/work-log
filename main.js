@@ -2208,15 +2208,15 @@ ${lines.join("\n")}`, 5e3);
     modal.titleEl.setText(poem.source || "\u8BD7\u8BCD\u8D4F\u6790");
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
-    const c = modal.containerEl.style;
-    c.setProperty("position", "fixed", "important");
-    c.setProperty("top", "50%", "important");
-    c.setProperty("left", "50%", "important");
-    c.setProperty("transform", "translate(-50%, -50%)", "important");
-    c.setProperty("margin", "0", "important");
-    c.setProperty("border", "none", "important");
-    c.setProperty("width", "500px", "important");
-    c.setProperty("max-width", "90vw", "important");
+    setTimeout(() => {
+      const bg = document.querySelector(".modal-bg");
+      if (bg) {
+        bg.style.setProperty("display", "flex", "important");
+        bg.style.setProperty("align-items", "center", "important");
+        bg.style.setProperty("justify-content", "center", "important");
+        bg.style.setProperty("padding-top", "0", "important");
+      }
+    }, 0);
     const zIdx = getComputedStyle(document.body).getPropertyValue("--layer-modal");
     c.setProperty("z-index", zIdx || "100", "important");
     const content = modal.contentEl.createDiv("wl-poem-modal");
