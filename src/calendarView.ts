@@ -92,11 +92,6 @@ export class CalendarView extends ItemView {
     }
     this.renderActionButton(container);
 
-    // 每日诗词
-    if (this.plugin.settings.showDailyPoem) {
-      this.renderDailyPoem(container);
-    }
-
     // 加载所有未完成待办（全文件，非仅选中日期）
     const allTodos = await this.plugin.fileManager.getAllIncompleteTodos(this.currentYear);
     this.renderTodoList(container, allTodos);
@@ -475,27 +470,24 @@ export class CalendarView extends ItemView {
 
   private poemData: Poem | null = null;
 
-  /** 仅在 onOpen 时调用一次，从 API 或本地加载诗词 */
+  /** 仅在 onOpen 时调用一次，从 API 或本地加载诗词，并创建独立 DOM */
   private async loadPoem(): Promise<void> {
     let poem = await fetchDailyPoem();
     if (!poem) {
       poem = getRandomPoem();
     }
     this.poemData = poem;
-  }
 
-  /** 渲染已加载的诗词到 DOM（切换日期不会重新获取） */
-  private renderDailyPoem(container: HTMLElement): void {
-    if (!this.poemData) return;
-    const poem = this.poemData;
+    // 清理旧的诗词区域
+    const old = this.containerEl.querySelector(".wl-daily-poem");
+    if (old) old.remove();
 
-    const section = container.createDiv("wl-daily-poem");
+    // 直接在 containerEl 中创建诗词区域（不在 calendar 容器内，切换日期不受影响）
+    const section = this.containerEl.createDiv("wl-daily-poem");
     const text = section.createDiv("wl-poem-text");
     text.textContent = poem.text;
     const meta = section.createDiv("wl-poem-meta");
     meta.textContent = `—— ${poem.author}`;
-
-    // 点击展开全文
     section.style.cursor = "pointer";
     section.addEventListener("click", () => this.showPoemModal());
   }
