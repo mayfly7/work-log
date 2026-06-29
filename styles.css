@@ -963,7 +963,7 @@ mark.wl-highlight {
 .wl-poem-panel .wl-poem-modal-author {
   text-align: center;
   color: var(--text-muted);
-  margin: 8px 0 16px;
+  margin: 4px 0 12px;
   font-size: 0.9em;
 }
 

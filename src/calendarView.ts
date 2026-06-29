@@ -494,7 +494,8 @@ export class CalendarView extends ItemView {
     const text = this.poemSectionEl.createDiv("wl-poem-text");
     text.textContent = poem.text;
     const meta = this.poemSectionEl.createDiv("wl-poem-meta");
-    meta.textContent = `—— ${poem.author}`;
+    const titlePart = poem.source ? `${poem.source}  ` : "";
+    meta.textContent = `${titlePart}—— ${poem.author}`;
     this.poemSectionEl.style.cursor = "pointer";
     this.poemSectionEl.addEventListener("click", () => this.showPoemModal());
   }
@@ -511,6 +512,11 @@ export class CalendarView extends ItemView {
     const title = panel.createDiv("wl-poem-panel-title");
     title.setText(poem.source || "诗词赏析");
 
+    // 作者（紧跟标题下方）
+    const author = panel.createDiv("wl-poem-modal-author");
+    author.setText(poem.author);
+    author.style.userSelect = "text";
+
     // 关闭按钮
     const closeBtn = panel.createDiv("wl-poem-close");
     closeBtn.setText("✕");
@@ -524,11 +530,6 @@ export class CalendarView extends ItemView {
       body.setText(poem.text);
     }
     body.style.userSelect = "text";
-
-    // 作者
-    const author = panel.createDiv("wl-poem-modal-author");
-    author.setText(`—— ${poem.author}`);
-    author.style.userSelect = "text";
 
     // 复制按钮
     const copyBtn = panel.createDiv("wl-poem-copy-btn");

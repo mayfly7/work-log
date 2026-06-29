@@ -2195,7 +2195,8 @@ ${lines.join("\n")}`, 5e3);
     const text = this.poemSectionEl.createDiv("wl-poem-text");
     text.textContent = poem.text;
     const meta = this.poemSectionEl.createDiv("wl-poem-meta");
-    meta.textContent = `\u2014\u2014 ${poem.author}`;
+    const titlePart = poem.source ? `${poem.source}  ` : "";
+    meta.textContent = `${titlePart}\u2014\u2014 ${poem.author}`;
     this.poemSectionEl.style.cursor = "pointer";
     this.poemSectionEl.addEventListener("click", () => this.showPoemModal());
   }
@@ -2207,6 +2208,9 @@ ${lines.join("\n")}`, 5e3);
     const panel = overlay.createDiv("wl-poem-panel");
     const title = panel.createDiv("wl-poem-panel-title");
     title.setText(poem.source || "\u8BD7\u8BCD\u8D4F\u6790");
+    const author = panel.createDiv("wl-poem-modal-author");
+    author.setText(poem.author);
+    author.style.userSelect = "text";
     const closeBtn = panel.createDiv("wl-poem-close");
     closeBtn.setText("\u2715");
     closeBtn.addEventListener("click", () => overlay.remove());
@@ -2217,9 +2221,6 @@ ${lines.join("\n")}`, 5e3);
       body.setText(poem.text);
     }
     body.style.userSelect = "text";
-    const author = panel.createDiv("wl-poem-modal-author");
-    author.setText(`\u2014\u2014 ${poem.author}`);
-    author.style.userSelect = "text";
     const copyBtn = panel.createDiv("wl-poem-copy-btn");
     copyBtn.setText("\u{1F4CB} \u590D\u5236\u5168\u6587");
     copyBtn.addEventListener("click", async () => {
