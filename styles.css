@@ -904,8 +904,8 @@ mark.wl-highlight {
   padding: 0;
 }
 
-/* 诗词弹窗居中：强制 .modal-bg flex 布局 + 居中 */
-.modal-bg:has(.wl-poem-modal) {
+/* 诗词弹窗居中（通过 JS 动态加 .wl-poem-center 类名触发） */
+.modal-bg.wl-poem-center {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;

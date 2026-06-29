@@ -2216,7 +2216,27 @@ ${lines.join("\n")}`, 5e3);
     modal.titleEl.setText(poem.source || "\u8BD7\u8BCD\u8D4F\u6790");
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
-    modal.containerEl.style.margin = "auto";
+    const style = document.createElement("style");
+    style.id = "wl-poem-modal-center";
+    style.textContent = `
+      .modal-bg.wl-poem-center {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding-top: 0 !important;
+      }
+    `;
+    document.head.appendChild(style);
+    requestAnimationFrame(() => {
+      const allBgs = document.querySelectorAll(".modal-bg");
+      const bg = allBgs[allBgs.length - 1];
+      if (bg)
+        bg.classList.add("wl-poem-center");
+    });
+    modal.onClose = () => {
+      var _a;
+      (_a = document.getElementById("wl-poem-modal-center")) == null ? void 0 : _a.remove();
+    };
     const content = modal.contentEl.createDiv("wl-poem-modal");
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
