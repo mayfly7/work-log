@@ -518,8 +518,6 @@ export class CalendarView extends ItemView {
         bg.style.setProperty("padding-top", "0", "important");
       }
     }, 0);
-    const zIdx = getComputedStyle(document.body).getPropertyValue("--layer-modal");
-    c.setProperty("z-index", zIdx || "100", "important");
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 

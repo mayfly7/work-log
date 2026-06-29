@@ -2216,8 +2216,6 @@ ${lines.join("\n")}`, 5e3);
         bg.style.setProperty("padding-top", "0", "important");
       }
     }, 0);
-    const zIdx = getComputedStyle(document.body).getPropertyValue("--layer-modal");
-    c.setProperty("z-index", zIdx || "100", "important");
     const content = modal.contentEl.createDiv("wl-poem-modal");
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
