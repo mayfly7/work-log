@@ -1821,6 +1821,7 @@ var CalendarView = class extends import_obsidian5.ItemView {
     // Daily Poem
     // ────────────────────────────────────────────
     this.poemData = null;
+    this.poemGen = 0;
     this.plugin = plugin;
     const now = (0, import_obsidian5.moment)();
     this.currentYear = now.year();
@@ -2190,8 +2191,11 @@ ${lines.join("\n")}`, 5e3);
   }
   async renderDailyPoem(container) {
     const today = (0, import_obsidian5.moment)().format("YYYY-MM-DD");
+    const gen = ++this.poemGen;
     const skipCache = this.plugin.settings.refreshPoemOnOpen;
     let poem = await fetchDailyPoem(skipCache);
+    if (this.poemGen !== gen)
+      return;
     if (!poem) {
       poem = getDailyPoem(today);
     }

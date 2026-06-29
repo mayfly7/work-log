@@ -470,12 +470,15 @@ export class CalendarView extends ItemView {
   // ────────────────────────────────────────────
 
   private poemData: Poem | null = null;
+  private poemGen = 0;
 
   private async renderDailyPoem(container: HTMLElement): Promise<void> {
     const today = moment().format("YYYY-MM-DD");
+    const gen = ++this.poemGen;
     // 优先尝试 API，失败则用本地诗词
     const skipCache = this.plugin.settings.refreshPoemOnOpen;
     let poem = await fetchDailyPoem(skipCache);
+    if (this.poemGen !== gen) return; // 渲染已过期
     if (!poem) {
       poem = getDailyPoem(today);
     }
