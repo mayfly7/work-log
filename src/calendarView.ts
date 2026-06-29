@@ -483,7 +483,7 @@ export class CalendarView extends ItemView {
 
     const section = container.createDiv("wl-daily-poem");
     const text = section.createDiv("wl-poem-text");
-    text.textContent = `"${poem.text}"`;
+    text.textContent = poem.text;
     const meta = section.createDiv("wl-poem-meta");
     meta.textContent = `—— ${poem.author}${poem.source ? " " + poem.source : ""}`;
 

@@ -2179,7 +2179,7 @@ ${lines.join("\n")}`, 5e3);
     this.poemData = poem;
     const section = container.createDiv("wl-daily-poem");
     const text = section.createDiv("wl-poem-text");
-    text.textContent = `"${poem.text}"`;
+    text.textContent = poem.text;
     const meta = section.createDiv("wl-poem-meta");
     meta.textContent = `\u2014\u2014 ${poem.author}${poem.source ? " " + poem.source : ""}`;
     section.style.cursor = "pointer";
