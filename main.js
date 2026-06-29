@@ -2187,9 +2187,13 @@ ${lines.join("\n")}`, 5e3);
     content.createDiv("wl-poem-modal-author").setText(`\u2014\u2014 ${poem.author}`);
     new import_obsidian5.Setting(content).addButton(
       (btn) => btn.setButtonText("\u{1F4CB} \u590D\u5236\u5168\u6587").setCta().onClick(async () => {
-        const copyText = poem.fullText ? poem.fullText.join("\n") + `
-\u2014\u2014 ${poem.author}${poem.source ? " " + poem.source : ""}` : `"${poem.text}"
-\u2014\u2014 ${poem.author}${poem.source ? " " + poem.source : ""}`;
+        const titleLine = poem.source ? `${poem.source}
+` : "";
+        const authorLine = `${poem.author}
+
+`;
+        const body = poem.fullText ? poem.fullText.join("\uFF0C") + "\u3002" : poem.text;
+        const copyText = titleLine + authorLine + body;
         await navigator.clipboard.writeText(copyText);
         new import_obsidian5.Notice("\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F");
         modal.close();

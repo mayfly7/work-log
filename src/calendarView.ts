@@ -522,9 +522,12 @@ export class CalendarView extends ItemView {
           .setButtonText("📋 复制全文")
           .setCta()
           .onClick(async () => {
-            const copyText = poem.fullText
-              ? poem.fullText.join("\n") + `\n—— ${poem.author}${poem.source ? " " + poem.source : ""}`
-              : `"${poem.text}"\n—— ${poem.author}${poem.source ? " " + poem.source : ""}`;
+            const titleLine = poem.source ? `${poem.source}\n` : "";
+            const authorLine = `${poem.author}\n\n`;
+            const body = poem.fullText
+              ? poem.fullText.join("，") + "。"
+              : poem.text;
+            const copyText = titleLine + authorLine + body;
             await navigator.clipboard.writeText(copyText);
             new Notice("已复制到剪贴板");
             modal.close();
