@@ -904,14 +904,11 @@ mark.wl-highlight {
   padding: 0;
 }
 
-/* 诗词弹窗居中 + 透明遮罩消除灰边 */
+/* 诗词弹窗：flex 居中 + 透明遮罩 */
 .modal-bg:has(.wl-poem-modal) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-top: 0 !important;
   background: transparent !important;
-}
-.modal-bg:has(.wl-poem-modal) .modal-container {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  margin: 0 !important;
 }

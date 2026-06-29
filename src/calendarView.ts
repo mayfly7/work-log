@@ -508,19 +508,32 @@ export class CalendarView extends ItemView {
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
 
-    // 直接对弹窗自身使用 fixed + translate 居中（验证有效的方案）
-    const c = modal.containerEl.style;
-    c.setProperty("position", "fixed", "important");
-    c.setProperty("top", "50%", "important");
-    c.setProperty("left", "50%", "important");
-    c.setProperty("transform", "translate(-50%, -50%)", "important");
-    c.setProperty("margin", "0", "important");
+    // 注入临时样式：.modal-bg 居中 + 透明背景
+    const styleId = "wl-poem-center-css";
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement("style");
+      style.id = styleId;
+      style.textContent = `
+        .modal-bg:has(.wl-poem-modal) {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding-top: 0 !important;
+          background: transparent !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
 
-    // 去掉 .modal-bg 的深色遮罩，消除灰边
+    // rAF 后直接操作 bg 内联样式（双保险）
     requestAnimationFrame(() => {
       const bg = modal.containerEl.parentElement as HTMLElement;
-      if (bg && bg.classList.contains("modal-bg")) {
-        bg.style.setProperty("background", "transparent", "important");
+      if (bg) {
+        bg.style.display = "flex";
+        bg.style.alignItems = "center";
+        bg.style.justifyContent = "center";
+        bg.style.paddingTop = "0";
+        bg.style.background = "transparent";
       }
     });
 
