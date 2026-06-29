@@ -508,16 +508,18 @@ export class CalendarView extends ItemView {
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
 
-    // 通过操作 .modal-bg 实现居中（不动容器，避免黑灰边）
-    setTimeout(() => {
-      const bg = document.querySelector(".modal-bg") as HTMLElement;
-      if (bg) {
+    // 通过 .modal-bg 居中（双层保障：立即尝试 + rAF 重试）
+    const centerModal = () => {
+      const bg = modal.containerEl.parentElement as HTMLElement;
+      if (bg && bg.classList.contains("modal-bg")) {
         bg.style.setProperty("display", "flex", "important");
         bg.style.setProperty("align-items", "center", "important");
         bg.style.setProperty("justify-content", "center", "important");
         bg.style.setProperty("padding-top", "0", "important");
       }
-    }, 0);
+    };
+    centerModal();
+    requestAnimationFrame(centerModal);
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 
