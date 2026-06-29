@@ -504,12 +504,19 @@ export class CalendarView extends ItemView {
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
 
-    // 弹窗在屏幕居中
-    modal.containerEl.style.position = "absolute";
-    modal.containerEl.style.top = "50%";
-    modal.containerEl.style.left = "50%";
-    modal.containerEl.style.transform = "translate(-50%, -50%)";
-    modal.containerEl.style.margin = "0";
+    // 强制 .modal-bg 覆盖全屏 + flex 居中
+    const origOnOpen = modal.onOpen;
+    modal.onOpen = () => {
+      origOnOpen.call(modal);
+      const bg = document.querySelector(".modal-bg") as HTMLElement;
+      if (bg) {
+        bg.style.position = "fixed";
+        bg.style.inset = "0";
+        bg.style.display = "flex";
+        bg.style.alignItems = "center";
+        bg.style.justifyContent = "center";
+      }
+    };
 
     const content = modal.contentEl.createDiv("wl-poem-modal");
 
