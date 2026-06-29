@@ -92,9 +92,11 @@ export async function fetchDailyPoem(skipCache = false): Promise<Poem | null> {
     // ≤8 句且 ≤56 字显示全文，长诗显示前两句
     const lines = d.content;
     const isShort = lines.length <= 8 && lines.join("").length <= 56;
-    const text = isShort
-      ? lines.join("，").replace(/[。？！]$/, "")
-      : lines.slice(0, 2).join("，");
+    const selected = isShort ? lines : lines.slice(0, 2);
+    const text = selected.map((line, i) => {
+      if (i === selected.length - 1) return line.replace(/[。？！，]$/, "");
+      return /[。？！，]$/.test(line) ? line : line + "，";
+    }).join("");
 
     const poem: Poem = {
       author: `${d.dynasty.name} · ${d.author.name}`,

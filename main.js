@@ -1735,7 +1735,12 @@ async function fetchDailyPoem(skipCache = false) {
     const d = resp.json.data;
     const lines = d.content;
     const isShort = lines.length <= 8 && lines.join("").length <= 56;
-    const text = isShort ? lines.join("\uFF0C").replace(/[。？！]$/, "") : lines.slice(0, 2).join("\uFF0C");
+    const selected = isShort ? lines : lines.slice(0, 2);
+    const text = selected.map((line, i) => {
+      if (i === selected.length - 1)
+        return line.replace(/[。？！，]$/, "");
+      return /[。？！，]$/.test(line) ? line : line + "\uFF0C";
+    }).join("");
     const poem = {
       author: `${d.dynasty.name} \xB7 ${d.author.name}`,
       text,
@@ -2177,9 +2182,11 @@ ${lines.join("\n")}`, 5e3);
     const content = modal.contentEl.createDiv("wl-poem-modal");
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
-      const lines = poem.fullText.map(
-        (line, i) => i < poem.fullText.length - 1 ? line + "\uFF0C" : line
-      );
+      const lines = poem.fullText.map((line, i) => {
+        if (i === poem.fullText.length - 1)
+          return line;
+        return line.endsWith("\u3002") || line.endsWith("\uFF1F") || line.endsWith("\uFF01") ? line : line + "\uFF0C";
+      });
       body.setText(lines.join(""));
     } else {
       content.createDiv("wl-poem-modal-body").setText(poem.text);
@@ -2192,7 +2199,11 @@ ${lines.join("\n")}`, 5e3);
         const authorLine = `${poem.author}
 
 `;
-        const body = poem.fullText ? poem.fullText.join("\uFF0C") + "\u3002" : poem.text;
+        const body = poem.fullText ? poem.fullText.map((line, i) => {
+          if (i === poem.fullText.length - 1)
+            return line;
+          return /[。？！，]$/.test(line) ? line : line + "\uFF0C";
+        }).join("") : poem.text;
         const copyText = titleLine + authorLine + body;
         await navigator.clipboard.writeText(copyText);
         new import_obsidian5.Notice("\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F");

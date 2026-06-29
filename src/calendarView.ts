@@ -504,9 +504,11 @@ export class CalendarView extends ItemView {
     // 完整正文
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");
-      const lines = poem.fullText.map((line, i) =>
-        i < poem.fullText!.length - 1 ? line + "，" : line
-      );
+      const lines = poem.fullText.map((line, i) => {
+        if (i === poem.fullText!.length - 1) return line;
+        return line.endsWith("。") || line.endsWith("？") || line.endsWith("！")
+          ? line : line + "，";
+      });
       body.setText(lines.join(""));
     } else {
       content.createDiv("wl-poem-modal-body").setText(poem.text);
@@ -525,7 +527,10 @@ export class CalendarView extends ItemView {
             const titleLine = poem.source ? `${poem.source}\n` : "";
             const authorLine = `${poem.author}\n\n`;
             const body = poem.fullText
-              ? poem.fullText.join("，") + "。"
+              ? poem.fullText.map((line, i) => {
+                  if (i === poem.fullText!.length - 1) return line;
+                  return /[。？！，]$/.test(line) ? line : line + "，";
+                }).join("")
               : poem.text;
             const copyText = titleLine + authorLine + body;
             await navigator.clipboard.writeText(copyText);
