@@ -503,82 +503,56 @@ export class CalendarView extends ItemView {
     const poem = this.poemData;
     if (!poem) return;
 
-    const modal = new Modal(this.app);
-    modal.titleEl.setText(poem.source || "诗词赏析");
-    modal.containerEl.style.minWidth = "360px";
-    modal.containerEl.style.maxWidth = "500px";
+    // 自建弹窗，不依赖 Obsidian Modal，彻底消除 .modal-bg 灰边
+    const overlay = document.body.createDiv("wl-poem-overlay");
+    const panel = overlay.createDiv("wl-poem-panel");
 
-    // 注入临时样式：.modal-bg 居中 + 透明背景
-    const styleId = "wl-poem-center-css";
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement("style");
-      style.id = styleId;
-      style.textContent = `
-        .modal-bg:has(.wl-poem-modal) {
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          padding-top: 0 !important;
-          background: transparent !important;
-        }
-      `;
-      document.head.appendChild(style);
-    }
+    // 标题
+    const title = panel.createDiv("wl-poem-panel-title");
+    title.setText(poem.source || "诗词赏析");
 
-    // rAF 后直接操作 bg 内联样式（双保险）
-    requestAnimationFrame(() => {
-      const bg = modal.containerEl.parentElement as HTMLElement;
-      if (bg) {
-        bg.style.display = "flex";
-        bg.style.alignItems = "center";
-        bg.style.justifyContent = "center";
-        bg.style.paddingTop = "0";
-        bg.style.background = "transparent";
-      }
-    });
+    // 关闭按钮
+    const closeBtn = panel.createDiv("wl-poem-close");
+    closeBtn.setText("✕");
+    closeBtn.addEventListener("click", () => overlay.remove());
 
-    const content = modal.contentEl.createDiv("wl-poem-modal");
-
-    // 完整正文（两句一行，律诗格式）
+    // 正文
+    const body = panel.createDiv("wl-poem-modal-body");
     if (poem.fullText && poem.fullText.length > 0) {
-      const body = content.createDiv("wl-poem-modal-body");
-      // 弹窗中逐句显示，避免折行
       body.setText(formatPoemLines(poem.fullText).join("\n"));
-      body.style.userSelect = "text";
     } else {
-      const body = content.createDiv("wl-poem-modal-body");
       body.setText(poem.text);
-      body.style.userSelect = "text";
     }
+    body.style.userSelect = "text";
 
     // 作者
-    const author = content.createDiv("wl-poem-modal-author");
+    const author = panel.createDiv("wl-poem-modal-author");
     author.setText(`—— ${poem.author}`);
     author.style.userSelect = "text";
 
     // 复制按钮
-    new Setting(content)
-      .addButton((btn) =>
-        btn
-          .setButtonText("📋 复制全文")
-          .setCta()
-          .onClick(async () => {
-            const titleLine = poem.source ? `${poem.source}\n` : "";
-            const authorLine = `${poem.author}\n\n`;
-            let body: string;
-            if (poem.fullText) {
-              body = formatPoemLines(poem.fullText).join("\n");
-            } else {
-              body = poem.text;
-            }
-            const copyText = titleLine + authorLine + body;
-            await navigator.clipboard.writeText(copyText);
-            new Notice("已复制到剪贴板");
-            modal.close();
-          })
-      );
+    const copyBtn = panel.createDiv("wl-poem-copy-btn");
+    copyBtn.setText("📋 复制全文");
+    copyBtn.addEventListener("click", async () => {
+      const titleLine = poem.source ? `${poem.source}\n` : "";
+      const authorLine = `${poem.author}\n\n`;
+      const bodyText = poem.fullText
+        ? formatPoemLines(poem.fullText).join("\n")
+        : poem.text;
+      await navigator.clipboard.writeText(titleLine + authorLine + bodyText);
+      new Notice("已复制到剪贴板");
+      overlay.remove();
+    });
 
-    modal.open();
+    // 点击遮罩关闭
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+    // ESC 关闭
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { overlay.remove(); document.removeEventListener("keydown", onKey); }
+    };
+    document.addEventListener("keydown", onKey);
   }
 
   // ────────────────────────────────────────────

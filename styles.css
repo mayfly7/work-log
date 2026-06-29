@@ -904,11 +904,81 @@ mark.wl-highlight {
   padding: 0;
 }
 
-/* 诗词弹窗：flex 居中 + 透明遮罩 */
-.modal-bg:has(.wl-poem-modal) {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding-top: 0 !important;
-  background: transparent !important;
+/* 诗词自建弹窗（无 .modal-bg，无灰边） */
+.wl-poem-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.wl-poem-panel {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-l);
+  min-width: 360px;
+  max-width: 500px;
+  width: 90vw;
+  padding: 20px 24px;
+}
+
+.wl-poem-panel-title {
+  font-size: 1em;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 16px;
+  color: var(--text-muted);
+}
+
+.wl-poem-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  cursor: pointer;
+  font-size: 1.1em;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: var(--radius-s);
+}
+.wl-poem-close:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.wl-poem-panel .wl-poem-modal-body {
+  font-size: 1.15em;
+  line-height: 2.2;
+  text-align: center;
+  margin: 8px 0;
+  padding: 12px;
+  border-left: 3px solid var(--text-accent);
+  background: var(--background-primary-alt);
+  border-radius: var(--radius-s);
+}
+
+.wl-poem-panel .wl-poem-modal-author {
+  text-align: center;
+  color: var(--text-muted);
+  margin: 8px 0 16px;
+  font-size: 0.9em;
+}
+
+.wl-poem-copy-btn {
+  display: block;
+  text-align: center;
+  padding: 8px 16px;
+  margin: 0 auto;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  font-size: 0.95em;
+  width: fit-content;
+}
+.wl-poem-copy-btn:hover {
+  filter: brightness(1.1);
 }

@@ -2203,68 +2203,47 @@ ${lines.join("\n")}`, 5e3);
     const poem = this.poemData;
     if (!poem)
       return;
-    const modal = new import_obsidian5.Modal(this.app);
-    modal.titleEl.setText(poem.source || "\u8BD7\u8BCD\u8D4F\u6790");
-    modal.containerEl.style.minWidth = "360px";
-    modal.containerEl.style.maxWidth = "500px";
-    const styleId = "wl-poem-center-css";
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement("style");
-      style.id = styleId;
-      style.textContent = `
-        .modal-bg:has(.wl-poem-modal) {
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          padding-top: 0 !important;
-          background: transparent !important;
-        }
-      `;
-      document.head.appendChild(style);
-    }
-    requestAnimationFrame(() => {
-      const bg = modal.containerEl.parentElement;
-      if (bg) {
-        bg.style.display = "flex";
-        bg.style.alignItems = "center";
-        bg.style.justifyContent = "center";
-        bg.style.paddingTop = "0";
-        bg.style.background = "transparent";
-      }
-    });
-    const content = modal.contentEl.createDiv("wl-poem-modal");
+    const overlay = document.body.createDiv("wl-poem-overlay");
+    const panel = overlay.createDiv("wl-poem-panel");
+    const title = panel.createDiv("wl-poem-panel-title");
+    title.setText(poem.source || "\u8BD7\u8BCD\u8D4F\u6790");
+    const closeBtn = panel.createDiv("wl-poem-close");
+    closeBtn.setText("\u2715");
+    closeBtn.addEventListener("click", () => overlay.remove());
+    const body = panel.createDiv("wl-poem-modal-body");
     if (poem.fullText && poem.fullText.length > 0) {
-      const body = content.createDiv("wl-poem-modal-body");
       body.setText(formatPoemLines(poem.fullText).join("\n"));
-      body.style.userSelect = "text";
     } else {
-      const body = content.createDiv("wl-poem-modal-body");
       body.setText(poem.text);
-      body.style.userSelect = "text";
     }
-    const author = content.createDiv("wl-poem-modal-author");
+    body.style.userSelect = "text";
+    const author = panel.createDiv("wl-poem-modal-author");
     author.setText(`\u2014\u2014 ${poem.author}`);
     author.style.userSelect = "text";
-    new import_obsidian5.Setting(content).addButton(
-      (btn) => btn.setButtonText("\u{1F4CB} \u590D\u5236\u5168\u6587").setCta().onClick(async () => {
-        const titleLine = poem.source ? `${poem.source}
+    const copyBtn = panel.createDiv("wl-poem-copy-btn");
+    copyBtn.setText("\u{1F4CB} \u590D\u5236\u5168\u6587");
+    copyBtn.addEventListener("click", async () => {
+      const titleLine = poem.source ? `${poem.source}
 ` : "";
-        const authorLine = `${poem.author}
+      const authorLine = `${poem.author}
 
 `;
-        let body;
-        if (poem.fullText) {
-          body = formatPoemLines(poem.fullText).join("\n");
-        } else {
-          body = poem.text;
-        }
-        const copyText = titleLine + authorLine + body;
-        await navigator.clipboard.writeText(copyText);
-        new import_obsidian5.Notice("\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F");
-        modal.close();
-      })
-    );
-    modal.open();
+      const bodyText = poem.fullText ? formatPoemLines(poem.fullText).join("\n") : poem.text;
+      await navigator.clipboard.writeText(titleLine + authorLine + bodyText);
+      new import_obsidian5.Notice("\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F");
+      overlay.remove();
+    });
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay)
+        overlay.remove();
+    });
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        overlay.remove();
+        document.removeEventListener("keydown", onKey);
+      }
+    };
+    document.addEventListener("keydown", onKey);
   }
   // ────────────────────────────────────────────
   renderTodoList(container, allTodos) {
