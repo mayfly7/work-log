@@ -839,7 +839,7 @@ mark.wl-highlight {
 
 /* 每日诗词 */
 .wl-daily-poem {
-  margin: 12px 4px 8px;
+  margin: 4px 4px 8px;
   padding: 10px 12px;
   border-radius: var(--radius-s);
   background: var(--background-secondary);

@@ -1845,6 +1845,7 @@ var CalendarView = class extends import_obsidian5.ItemView {
   async render() {
     this.removeTooltip();
     const container = this.containerEl.children[1];
+    const poemEl = container.querySelector(".wl-daily-poem");
     container.empty();
     container.addClass("work-log-calendar");
     const datesWithContent = await this.plugin.fileManager.getDatesWithContent(
@@ -1864,6 +1865,9 @@ var CalendarView = class extends import_obsidian5.ItemView {
     this.renderActionButton(container);
     const allTodos = await this.plugin.fileManager.getAllIncompleteTodos(this.currentYear);
     this.renderTodoList(container, allTodos);
+    if (poemEl) {
+      container.appendChild(poemEl);
+    }
   }
   // ─────────────────────────────────────────────────────
   // Header

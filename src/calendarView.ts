@@ -68,6 +68,9 @@ export class CalendarView extends ItemView {
     // 重新渲染前先清除残留的 tooltip，防止 re-render 销毁格子后 mouseleave 不触发
     this.removeTooltip();
     const container = this.containerEl.children[1] as HTMLElement;
+
+    // 保存诗词节点，empty() 后重新挂回，保持紧贴日历
+    const poemEl = container.querySelector(".wl-daily-poem");
     container.empty();
     container.addClass("work-log-calendar");
 
@@ -95,6 +98,11 @@ export class CalendarView extends ItemView {
     // 加载所有未完成待办（全文件，非仅选中日期）
     const allTodos = await this.plugin.fileManager.getAllIncompleteTodos(this.currentYear);
     this.renderTodoList(container, allTodos);
+
+    // 重新挂载诗词区域（切换日期不重新获取，但保持视觉紧贴日历）
+    if (poemEl) {
+      container.appendChild(poemEl);
+    }
   }
 
   // ─────────────────────────────────────────────────────
