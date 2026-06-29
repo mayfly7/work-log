@@ -499,18 +499,25 @@ export class CalendarView extends ItemView {
     const poem = this.poemData;
     if (!poem) return;
 
-    // 扩展 Modal 重写 onOpen，在初始化时就设置居中
+    // 扩展 Modal 重写 onOpen，用 rAF 等 DOM 挂载后再居中
     class PoemModal extends Modal {
       onOpen(): void {
         super.onOpen();
-        const bg = this.containerEl.closest(".modal-bg") as HTMLElement;
-        if (bg) {
-          bg.style.position = "fixed";
-          bg.style.inset = "0";
-          bg.style.display = "flex";
-          bg.style.alignItems = "center";
-          bg.style.justifyContent = "center";
-        }
+        // 强制 bg 居中，Obsidian 默认 align-items:flex-start + padding-top
+        const apply = () => {
+          const bg = document.querySelector(".modal-bg") as HTMLElement;
+          if (bg) {
+            bg.style.display = "flex";
+            bg.style.alignItems = "center";
+            bg.style.justifyContent = "center";
+            bg.style.paddingTop = "0";
+          }
+        };
+        requestAnimationFrame(() => {
+          apply();
+          // 双帧保障，部分主题会在 rAF 后重置样式
+          requestAnimationFrame(apply);
+        });
       }
     }
 

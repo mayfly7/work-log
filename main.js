@@ -2215,14 +2215,19 @@ ${lines.join("\n")}`, 5e3);
     class PoemModal extends import_obsidian5.Modal {
       onOpen() {
         super.onOpen();
-        const bg = this.containerEl.closest(".modal-bg");
-        if (bg) {
-          bg.style.position = "fixed";
-          bg.style.inset = "0";
-          bg.style.display = "flex";
-          bg.style.alignItems = "center";
-          bg.style.justifyContent = "center";
-        }
+        const apply = () => {
+          const bg = document.querySelector(".modal-bg");
+          if (bg) {
+            bg.style.display = "flex";
+            bg.style.alignItems = "center";
+            bg.style.justifyContent = "center";
+            bg.style.paddingTop = "0";
+          }
+        };
+        requestAnimationFrame(() => {
+          apply();
+          requestAnimationFrame(apply);
+        });
       }
     }
     const modal = new PoemModal(this.app);
