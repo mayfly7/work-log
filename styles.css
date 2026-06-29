@@ -903,16 +903,3 @@ mark.wl-highlight {
   border: none;
   padding: 0;
 }
-
-/* 诗词弹窗整体居中 */
-.modal-bg:has(.wl-poem-modal) {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* 确保诗词弹窗容器不撑满 */
-.modal-bg:has(.wl-poem-modal) .modal-container {
-  margin: auto !important;
-  position: relative !important;
-}

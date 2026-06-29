@@ -2204,18 +2204,6 @@ ${lines.join("\n")}`, 5e3);
     modal.containerEl.style.minWidth = "360px";
     modal.containerEl.style.maxWidth = "500px";
     modal.contentEl.style.textAlign = "center";
-    const originalOpen = modal.onOpen.bind(modal);
-    modal.onOpen = () => {
-      originalOpen();
-      const bgEl = document.querySelector(".modal-bg");
-      if (bgEl) {
-        bgEl.style.display = "flex";
-        bgEl.style.alignItems = "center";
-        bgEl.style.justifyContent = "center";
-        bgEl.style.position = "fixed";
-        bgEl.style.inset = "0";
-      }
-    };
     const content = modal.contentEl.createDiv("wl-poem-modal");
     if (poem.fullText && poem.fullText.length > 0) {
       const body = content.createDiv("wl-poem-modal-body");

@@ -503,21 +503,6 @@ export class CalendarView extends ItemView {
     // 内容区居中
     modal.contentEl.style.textAlign = "center";
 
-    // 强制居中：重写 onOpen 钩子
-    const originalOpen = modal.onOpen.bind(modal);
-    modal.onOpen = () => {
-      originalOpen();
-      // 找到 .modal-bg 容器，设为 flex 居中
-      const bgEl = document.querySelector(".modal-bg") as HTMLElement;
-      if (bgEl) {
-        bgEl.style.display = "flex";
-        bgEl.style.alignItems = "center";
-        bgEl.style.justifyContent = "center";
-        bgEl.style.position = "fixed";
-        bgEl.style.inset = "0";
-      }
-    };
-
     const content = modal.contentEl.createDiv("wl-poem-modal");
 
     // 完整正文（两句一行，律诗格式）
