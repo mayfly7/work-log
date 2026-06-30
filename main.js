@@ -144,7 +144,7 @@ var WorkLogSettingTab = class extends import_obsidian.PluginSettingTab {
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian.Setting(containerEl).setName("\u6BCF\u6B21\u5237\u65B0\u8BD7\u8BCD").setDesc("\u6BCF\u6B21\u6253\u5F00\u6216\u5207\u6362\u65E5\u5386\u65F6\u968F\u673A\u66F4\u6362\u4E00\u9996\u8BD7\u8BCD\uFF08\u9ED8\u8BA4\u6BCF\u5929\u56FA\u5B9A\u4E00\u9996\uFF09").addToggle(
+    new import_obsidian.Setting(containerEl).setName("\u6BCF\u6B21\u5237\u65B0\u8BD7\u8BCD").setDesc("\u6BCF\u6B21\u6253\u5F00\u65E5\u5386\u89C6\u56FE\u65F6\u968F\u673A\u66F4\u6362\u8BD7\u8BCD\uFF08\u5173\u95ED\u5219\u6BCF\u65E5\u56FA\u5B9A\u4E00\u9996\uFF0C\u5207\u6362\u6708\u4EFD\u4E0D\u66F4\u6362\uFF09").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.refreshPoemOnOpen).onChange(async (value) => {
         this.plugin.settings.refreshPoemOnOpen = value;
         await this.plugin.saveSettings();
@@ -1724,12 +1724,19 @@ var POEMS = [
   { author: "\u9648\u5B50\u6602", text: "\u524D\u4E0D\u89C1\u53E4\u4EBA\uFF0C\u540E\u4E0D\u89C1\u6765\u8005\u3002\u5FF5\u5929\u5730\u4E4B\u60A0\u60A0\uFF0C\u72EC\u6006\u7136\u800C\u6D95\u4E0B\u3002", source: "\u300A\u767B\u5E7D\u5DDE\u53F0\u6B4C\u300B" },
   { author: "\u5F20\u4E5D\u9F84", text: "\u6D77\u4E0A\u751F\u660E\u6708\uFF0C\u5929\u6DAF\u5171\u6B64\u65F6\u3002", source: "\u300A\u671B\u6708\u6000\u8FDC\u300B" }
 ];
-var poemCache = null;
-var poemCacheDate = "";
 async function fetchDailyPoem(skipCache = false) {
   const today = new Date().toISOString().slice(0, 10);
-  if (!skipCache && poemCacheDate === today && poemCache)
-    return poemCache;
+  if (!skipCache) {
+    try {
+      const raw = localStorage.getItem("wl-poem-cache");
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached.date === today && cached.poem)
+          return cached.poem;
+      }
+    } catch (e) {
+    }
+  }
   try {
     let data = null;
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -1754,8 +1761,10 @@ async function fetchDailyPoem(skipCache = false) {
       fullText: d.content
       // 保存完整正文
     };
-    poemCache = poem;
-    poemCacheDate = today;
+    try {
+      localStorage.setItem("wl-poem-cache", JSON.stringify({ date: today, poem }));
+    } catch (e) {
+    }
     return poem;
   } catch (e) {
     return null;

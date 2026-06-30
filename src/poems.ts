@@ -78,12 +78,19 @@ interface PoemApiData {
  * 从 API 获取随机诗词，失败时返回 null
  * @param skipCache 跳过每日缓存
  */
-let poemCache: Poem | null = null;
-let poemCacheDate = "";
-
 export async function fetchDailyPoem(skipCache = false): Promise<Poem | null> {
   const today = new Date().toISOString().slice(0, 10);
-  if (!skipCache && poemCacheDate === today && poemCache) return poemCache;
+
+  // 每日缓存：localStorage 持久化，跨视图开关不丢失
+  if (!skipCache) {
+    try {
+      const raw = localStorage.getItem("wl-poem-cache");
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached.date === today && cached.poem) return cached.poem;
+      }
+    } catch { /* ignore */ }
+  }
 
   try {
     let data: PoemApiData | null = null;
@@ -112,8 +119,8 @@ export async function fetchDailyPoem(skipCache = false): Promise<Poem | null> {
       source: `《${d.title}》`,
       fullText: d.content, // 保存完整正文
     };
-    poemCache = poem;
-    poemCacheDate = today;
+    // 存入 localStorage 持久缓存
+    try { localStorage.setItem("wl-poem-cache", JSON.stringify({ date: today, poem })); } catch { /* ignore */ }
     return poem;
   } catch {
     return null;

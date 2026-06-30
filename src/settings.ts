@@ -262,7 +262,7 @@ export class WorkLogSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("每次刷新诗词")
-      .setDesc("每次打开或切换日历时随机更换一首诗词（默认每天固定一首）")
+      .setDesc("每次打开日历视图时随机更换诗词（关闭则每日固定一首，切换月份不更换）")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.refreshPoemOnOpen)
