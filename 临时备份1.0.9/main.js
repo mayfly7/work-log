@@ -1381,67 +1381,38 @@ var FileManager = class {
   // 内容统计（供日历视图和统计面板使用）
   // ─────────────────────────────────────────────────────
   /**
-   * 一次读取获取渲染所需全部数据（优化 render 中的3次文件读取为1次）
+   * 获取某年某月有内容的日期集合
    */
-  async getCalendarData(year, month) {
+  async getDatesWithContent(year, month) {
     const filePath = this.getFilePath(year);
     const file = this.app.vault.getAbstractFileByPath(filePath);
     if (!file)
-      return { datesWithContent: /* @__PURE__ */ new Set(), incompleteTodoMap: /* @__PURE__ */ new Map(), allTodos: [] };
+      return /* @__PURE__ */ new Set();
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
-    const datesWithContent = /* @__PURE__ */ new Set();
-    const incompleteTodoMap = /* @__PURE__ */ new Map();
-    const allTodos = [];
+    const result = /* @__PURE__ */ new Set();
     let currentDate = null;
-    let currentDateMMDD = null;
     let hasContent = false;
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
+    for (const line of lines) {
       if (line.startsWith("#### ")) {
         if (currentDate && hasContent) {
-          datesWithContent.add(currentDate);
+          result.add(currentDate);
         }
         const m = parseDayTitle(line, this.settings.dateFormat);
         if (m && m.isValid() && m.year() === year && m.month() + 1 === month) {
           currentDate = m.format("YYYY-MM-DD");
-          currentDateMMDD = m.format("MM-DD");
           hasContent = false;
         } else {
-          currentDate = m ? m.format("YYYY-MM-DD") : null;
-          currentDateMMDD = m ? m.format("MM-DD") : null;
-          hasContent = false;
+          currentDate = null;
         }
-      } else if (currentDate && line.trim().startsWith("- [ ]")) {
-        if (currentDate.startsWith(`${year}-${String(month).padStart(2, "0")}`)) {
-          incompleteTodoMap.set(currentDate, (incompleteTodoMap.get(currentDate) || 0) + 1);
-        }
-        const todoText = line.trim().replace(/^- \[ \]\s*/, "");
-        const last = allTodos[allTodos.length - 1];
-        if (last && last.date === currentDateMMDD) {
-          last.todos.push({ text: todoText, line: i });
-        } else if (currentDateMMDD) {
-          allTodos.push({ date: currentDateMMDD, todos: [{ text: todoText, line: i }] });
-        }
-        hasContent = true;
       } else if (currentDate && !line.startsWith("## ") && !line.startsWith("### ") && line.trim() !== "") {
         hasContent = true;
-      } else if (line.startsWith("## ") || line.startsWith("### ")) {
-        currentDate = null;
-        currentDateMMDD = null;
       }
     }
     if (currentDate && hasContent) {
-      datesWithContent.add(currentDate);
+      result.add(currentDate);
     }
-    return { datesWithContent, incompleteTodoMap, allTodos };
-  }
-  /**
-   * 获取某年某月有内容的日期集合
-   */
-  async getDatesWithContent(year, month) {
-    const data = await this.getCalendarData(year, month);
-    return data.datesWithContent;
+    return result;
   }
   /**
    * 获取某日期的前几行工作内容（用于 hover 预览）
@@ -1884,7 +1855,7 @@ var CalendarView = class extends import_obsidian5.ItemView {
     this.registerDomEvent(document, "scroll", () => this.removeTooltip(), true);
     this.registerDomEvent(document, "click", () => this.removeTooltip());
     if (this.plugin.settings.showDailyPoem) {
-      this.loadPoem();
+      await this.loadPoem();
     }
     await this.refresh();
   }
@@ -1907,12 +1878,14 @@ var CalendarView = class extends import_obsidian5.ItemView {
       poemEl.remove();
     container.empty();
     container.addClass("work-log-calendar");
-    const calData = await this.plugin.fileManager.getCalendarData(
+    const datesWithContent = await this.plugin.fileManager.getDatesWithContent(
       this.currentYear,
       this.currentMonth
     );
-    const datesWithContent = calData.datesWithContent;
-    const incompleteTodoMap = calData.incompleteTodoMap;
+    const incompleteTodoMap = await this.plugin.fileManager.getIncompleteTodoMap(
+      this.currentYear,
+      this.currentMonth
+    );
     this.renderHeader(container);
     this.renderCalendarGrid(container, datesWithContent, incompleteTodoMap);
     const grid = container.querySelector(".wl-cal-grid");
@@ -1920,7 +1893,8 @@ var CalendarView = class extends import_obsidian5.ItemView {
       grid.addEventListener("mouseleave", () => this.removeTooltip());
     }
     this.renderActionButton(container);
-    this.renderTodoList(container, calData.allTodos);
+    const allTodos = await this.plugin.fileManager.getAllIncompleteTodos(this.currentYear);
+    this.renderTodoList(container, allTodos);
     if (poemEl) {
       container.appendChild(poemEl);
     }
@@ -2236,7 +2210,7 @@ ${lines.join("\n")}`, 5e3);
       }
     });
   }
-  /** 后台加载诗词，完成后创建 DOM（不阻塞日历渲染） */
+  /** 仅在 onOpen 时调用一次，从 API 或本地加载诗词，并创建独立 DOM */
   async loadPoem() {
     const skipCache = this.plugin.settings.refreshPoemOnOpen;
     let poem = await fetchDailyPoem(skipCache);
@@ -2244,21 +2218,14 @@ ${lines.join("\n")}`, 5e3);
       poem = skipCache ? getRandomPoem() : getDailyPoem();
     }
     this.poemData = poem;
-    if (this.poemSectionEl)
-      this.poemSectionEl.remove();
-    const section = document.body.createDiv("wl-daily-poem");
-    const text = section.createDiv("wl-poem-text");
+    this.poemSectionEl = this.containerEl.createDiv("wl-daily-poem");
+    const text = this.poemSectionEl.createDiv("wl-poem-text");
     text.textContent = poem.text;
-    const meta = section.createDiv("wl-poem-meta");
+    const meta = this.poemSectionEl.createDiv("wl-poem-meta");
     const titlePart = poem.source ? `${poem.source}  ` : "";
     meta.textContent = `${titlePart}\u2014\u2014 ${poem.author}`;
-    section.style.cursor = "pointer";
-    section.addEventListener("click", () => this.showPoemModal());
-    this.poemSectionEl = section;
-    const container = this.containerEl.children[1];
-    if (container) {
-      container.appendChild(section);
-    }
+    this.poemSectionEl.style.cursor = "pointer";
+    this.poemSectionEl.addEventListener("click", () => this.showPoemModal());
   }
   showPoemModal() {
     const poem = this.poemData;

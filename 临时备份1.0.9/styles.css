@@ -1,0 +1,984 @@
+/* =====================================================
+   Work Log Plugin — styles.css
+   Obsidian 变量兼容，支持明暗主题
+   ===================================================== */
+
+/* ─── 日历容器 ─────────────────────────────────────── */
+.work-log-calendar {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  overflow-y: auto;
+  font-family: var(--font-interface);
+  color: var(--text-normal);
+  background: var(--background-primary);
+}
+
+/* ─── 日历头部 ─────────────────────────────────────── */
+.wl-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.wl-cal-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.wl-title-sep {
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+.wl-nav-btn,
+.wl-today-btn {
+  background: var(--interactive-normal);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  padding: 2px 8px;
+  font-size: 1.1em;
+  line-height: 1.4;
+  transition: background 0.15s;
+}
+
+.wl-nav-btn:hover,
+.wl-today-btn:hover {
+  background: var(--interactive-hover);
+}
+
+.wl-today-btn {
+  font-size: 0.78em;
+  padding: 2px 6px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+.wl-today-btn:hover {
+  background: var(--interactive-accent-hover);
+}
+
+.wl-year-select,
+.wl-month-select {
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  padding: 2px 4px;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+/* ─── 日历格子 ─────────────────────────────────────── */
+.wl-cal-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wl-cal-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.wl-cal-weekdays .wl-cal-cell {
+  text-align: center;
+  font-size: 0.72em;
+  color: var(--text-muted);
+  padding: 2px 0;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+}
+
+.wl-cal-cell {
+  position: relative;
+  min-height: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-s);
+  cursor: default;
+  border: 1px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.wl-cal-empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+.wl-cal-day {
+  cursor: pointer;
+  background: var(--background-secondary);
+}
+
+.wl-cal-day:hover {
+  background: var(--background-modifier-hover);
+  border-color: var(--interactive-accent);
+}
+
+.wl-day-num {
+  font-size: 0.82em;
+  line-height: 1;
+  color: var(--text-normal);
+  z-index: 1;
+}
+
+/* 今日高亮 */
+.wl-today {
+  background: var(--interactive-accent) !important;
+  border-color: var(--interactive-accent) !important;
+}
+
+.wl-today .wl-day-num {
+  color: var(--text-on-accent) !important;
+  font-weight: 700;
+}
+
+/* 周末 */
+.wl-weekend .wl-day-num {
+  color: var(--color-red);
+}
+
+.wl-today.wl-weekend .wl-day-num {
+  color: var(--text-on-accent) !important;
+}
+
+/* 有内容标记圆点 */
+.wl-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--interactive-accent);
+  margin-top: 1px;
+  position: absolute;
+  bottom: 3px;
+}
+
+.wl-today .wl-dot {
+  background: var(--text-on-accent);
+}
+
+.wl-has-content .wl-day-num {
+  font-weight: 600;
+}
+
+/* 未完成待办红色标记 */
+.wl-todo-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ef4444;
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 8px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 5px;
+  min-height: 5px;
+}
+
+.wl-today .wl-todo-dot {
+  background: #fca5a5;
+}
+
+/* 节假日标注 */
+.wl-holiday-label {
+  font-size: 7px;
+  line-height: 1;
+  color: #ef4444;
+  white-space: nowrap;
+  margin-top: 1px;
+  font-weight: 600;
+  text-align: center;
+  z-index: 1;
+}
+
+.wl-holiday .wl-day-num {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.wl-holiday.wl-today .wl-day-num {
+  color: var(--text-on-accent) !important;
+}
+
+.wl-holiday.wl-today .wl-holiday-label {
+  color: #fca5a5;
+}
+
+/* ─── 统计区域 ─────────────────────────────────────── */
+.wl-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: var(--background-secondary);
+  border-radius: var(--radius-m);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.wl-stat-item {
+  font-size: 0.82em;
+  color: var(--text-muted);
+}
+
+/* ─── 右键菜单 ─────────────────────────────────────── */
+.wl-context-menu {
+  display: none;
+}
+
+.wl-context-item {
+  display: none;
+}
+
+/* 选中日期高亮 */
+.wl-selected {
+  border-color: var(--interactive-accent) !important;
+  box-shadow: 0 0 0 1px var(--interactive-accent);
+}
+
+.wl-selected.wl-today {
+  border-color: var(--text-on-accent) !important;
+  box-shadow: 0 0 0 1px var(--text-on-accent);
+}
+
+/* Hover 预览选中框 */
+.wl-hover {
+  border-color: var(--interactive-accent) !important;
+  box-shadow: 0 0 0 1px var(--interactive-accent);
+  background: var(--background-modifier-hover);
+}
+
+.wl-hover.wl-today {
+  border-color: var(--text-on-accent) !important;
+  box-shadow: 0 0 0 1px var(--text-on-accent);
+  background: var(--interactive-accent-hover, var(--interactive-accent));
+}
+
+/* ─── 底部添加按钮 ─────────────────────────────────── */
+.wl-action-bar {
+  padding: 8px 0 4px;
+  border-top: 1px solid var(--background-modifier-border);
+  position: relative;
+}
+
+.wl-add-btn {
+  width: 100%;
+  padding: 8px 0;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: var(--radius-m);
+  cursor: pointer;
+  font-size: 0.88em;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+
+.wl-add-btn:hover {
+  opacity: 0.85;
+}
+
+/* 上午/下午选择弹窗 */
+.wl-session-popup {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-l);
+  margin-bottom: 4px;
+  z-index: 100;
+}
+
+.wl-session-opt {
+  flex: 1;
+  padding: 6px 0;
+  border: none;
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  font-size: 0.85em;
+  font-weight: 600;
+  transition: opacity 0.15s;
+  color: #fff;
+}
+
+.wl-session-opt:hover {
+  opacity: 0.85;
+}
+
+.wl-session-am {
+  background: #f59e0b;
+}
+
+.wl-session-pm {
+  background: #6366f1;
+}
+
+.wl-session-full {
+  background: #10b981;
+}
+
+/* 添加待办按钮 */
+.wl-todo-btn {
+  width: 100%;
+  margin-top: 6px;
+  padding: 7px 0;
+  background: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-m);
+  cursor: pointer;
+  font-size: 0.85em;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+
+.wl-todo-btn:hover {
+  opacity: 0.85;
+}
+
+/* ─── 待办列表（日历下方）─────────────────────────── */
+.wl-todo-section {
+  margin-top: 4px;
+  padding: 8px 10px;
+  background: var(--background-secondary);
+  border-radius: var(--radius-m);
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.wl-todo-label {
+  font-size: 0.78em;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.wl-todo-item {
+  font-size: 0.82em;
+  padding: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  gap: 4px;
+}
+
+.wl-clickable {
+  cursor: pointer;
+  border-radius: var(--radius-s);
+  padding: 2px 4px !important;
+}
+
+.wl-clickable:hover {
+  background: var(--background-modifier-hover);
+}
+
+.wl-todo-date {
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.wl-todo-text {
+  color: #ef4444;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Hover Tooltip ────────────────────────────────── */
+.wl-tooltip {
+  position: fixed;
+  z-index: 10001;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-l);
+  padding: 8px 12px;
+  max-width: 320px;
+  min-width: 180px;
+  pointer-events: none;
+}
+
+.wl-tt-title {
+  font-size: 0.78em;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.wl-tt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wl-tt-line {
+  font-size: 0.82em;
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 待办 tooltip */
+.wl-tt-todos {
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--background-modifier-border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wl-tt-todo-line {
+  font-size: 0.8em;
+  color: #ef4444;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+/* ─── 搜索视图 ─────────────────────────────────────── */
+.work-log-search {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  overflow-y: auto;
+  color: var(--text-normal);
+  background: var(--background-primary);
+}
+
+.wl-search-header h4 {
+  margin: 0 0 8px 0;
+  color: var(--text-normal);
+}
+
+.wl-search-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.wl-search-input {
+  flex: 1;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  padding: 5px 10px;
+  font-size: 0.9em;
+  outline: none;
+}
+
+.wl-search-input:focus {
+  border-color: var(--interactive-accent);
+}
+
+.wl-search-btn {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: var(--radius-s);
+  padding: 5px 14px;
+  cursor: pointer;
+  font-size: 0.88em;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.wl-search-btn:hover {
+  background: var(--interactive-accent-hover);
+}
+
+.wl-search-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.wl-no-results {
+  color: var(--text-muted);
+  font-size: 0.88em;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.wl-result-count {
+  font-size: 0.78em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.wl-result-group {
+  margin-bottom: 10px;
+}
+
+.wl-result-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82em;
+  font-weight: 700;
+  color: var(--text-accent);
+  margin-bottom: 4px;
+}
+
+.wl-result-date-icon {
+  font-size: 0.9em;
+}
+
+.wl-result-item {
+  background: var(--background-secondary);
+  border-radius: var(--radius-s);
+  padding: 5px 10px;
+  font-size: 0.84em;
+  color: var(--text-normal);
+  cursor: pointer;
+  margin-bottom: 2px;
+  border-left: 2px solid var(--background-modifier-border);
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.wl-result-item:hover {
+  background: var(--background-modifier-hover);
+  border-left-color: var(--interactive-accent);
+}
+
+mark.wl-highlight {
+  background: var(--text-highlight-bg);
+  color: var(--text-normal);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* ─── Modal 样式 ─────────────────────────────────────── */
+.wl-modal-btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+.wl-date-input,
+.wl-year-sel {
+  width: 100%;
+  margin-top: 8px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  padding: 6px 10px;
+  font-size: 0.95em;
+}
+
+.wl-danger-title {
+  color: var(--color-red) !important;
+}
+
+.wl-confirm-msg {
+  font-size: 0.9em;
+  color: var(--text-muted);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.wl-form-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.wl-form-row label {
+  font-size: 0.88em;
+  color: var(--text-muted);
+  min-width: 48px;
+}
+
+.wl-form-row select {
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  padding: 4px 8px;
+  font-size: 0.88em;
+}
+
+/* =====================================================
+   移动端适配（Android / iOS）
+   ===================================================== */
+
+/* 触摸目标至少 44x44px，字体适当放大 */
+.is-mobile .wl-cal-cell {
+  min-height: 44px;
+}
+
+.is-mobile .wl-day-num {
+  font-size: 0.95em;
+}
+
+.is-mobile .wl-cal-weekdays .wl-cal-cell {
+  font-size: 0.85em;
+  padding: 4px 0;
+}
+
+/* 导航按钮更大 */
+.is-mobile .wl-nav-btn,
+.is-mobile .wl-today-btn {
+  padding: 6px 12px;
+  font-size: 1.2em;
+}
+
+.is-mobile .wl-today-btn {
+  font-size: 0.9em;
+  padding: 6px 10px;
+}
+
+.is-mobile .wl-year-select,
+.is-mobile .wl-month-select {
+  padding: 4px 8px;
+  font-size: 0.95em;
+}
+
+/* 节假日标签移动端可读 */
+.is-mobile .wl-holiday-label {
+  font-size: 9px;
+}
+
+/* 圆点更大 */
+.is-mobile .wl-dot {
+  width: 6px;
+  height: 6px;
+}
+
+.is-mobile .wl-todo-dot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+  font-size: 10px;
+  bottom: 3px;
+  right: 5px;
+}
+
+/* 底部按钮触摸友好 */
+.is-mobile .wl-add-btn {
+  padding: 12px 0;
+  font-size: 1em;
+}
+
+.is-mobile .wl-todo-btn {
+  padding: 11px 0;
+  font-size: 0.95em;
+}
+
+/* 上午/下午弹窗：移动端居中铺满，避免超出屏幕 */
+.is-mobile .wl-session-popup {
+  position: fixed;
+  bottom: auto;
+  left: 50%;
+  right: auto;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 360px;
+  padding: 12px;
+  gap: 10px;
+  z-index: 10000;
+}
+
+.is-mobile .wl-session-opt {
+  padding: 14px 0;
+  font-size: 1em;
+}
+
+/* 待办列表移动端适配 */
+.is-mobile .wl-todo-section {
+  max-height: 200px;
+  padding: 10px 12px;
+}
+
+.is-mobile .wl-todo-item {
+  font-size: 0.9em;
+  padding: 6px 4px;
+}
+
+.is-mobile .wl-clickable {
+  padding: 6px 8px !important;
+}
+
+/* 统计区域 */
+.is-mobile .wl-stat-item {
+  font-size: 0.9em;
+}
+
+/* 搜索视图移动端 */
+.is-mobile .work-log-search {
+  padding: 8px;
+  gap: 8px;
+}
+
+.is-mobile .wl-search-input {
+  padding: 8px 12px;
+  font-size: 1em;
+}
+
+.is-mobile .wl-search-btn {
+  padding: 8px 16px;
+  font-size: 0.95em;
+}
+
+.is-mobile .wl-result-item {
+  padding: 8px 12px;
+  font-size: 0.9em;
+}
+
+/* Modal 移动端 */
+.is-mobile .wl-date-input,
+.is-mobile .wl-year-sel {
+  padding: 10px 14px;
+  font-size: 1.05em;
+}
+
+.is-mobile .wl-form-row select {
+  padding: 8px 12px;
+  font-size: 0.95em;
+}
+
+/* 移动端禁用 hover 效果（避免点击后残留）*/
+.is-mobile .wl-cal-day:hover {
+  background: var(--background-secondary);
+  border-color: transparent;
+}
+
+.is-mobile .wl-cal-day.wl-selected:hover {
+  border-color: var(--interactive-accent) !important;
+}
+
+.is-mobile .wl-add-btn:hover,
+.is-mobile .wl-todo-btn:hover,
+.is-mobile .wl-session-opt:hover,
+.is-mobile .wl-search-btn:hover,
+.is-mobile .wl-nav-btn:hover,
+.is-mobile .wl-today-btn:hover {
+  opacity: 1;
+}
+
+/* 移动端激活态反馈 */
+.is-mobile .wl-cal-day:active {
+  background: var(--background-modifier-hover);
+  transform: scale(0.95);
+}
+
+.is-mobile .wl-add-btn:active,
+.is-mobile .wl-todo-btn:active,
+.is-mobile .wl-session-opt:active {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
+
+/* 日历容器移动端：减少内边距，增加滚动流畅度 */
+.is-mobile .work-log-calendar {
+  padding: 6px;
+  gap: 6px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.is-mobile .wl-cal-header {
+  padding: 6px 0;
+}
+
+.is-mobile .wl-cal-grid {
+  gap: 3px;
+}
+
+.is-mobile .wl-cal-row {
+  gap: 3px;
+}
+
+/* 日历标题区域移动端 */
+.is-mobile .wl-cal-title {
+  gap: 6px;
+}
+
+.is-mobile .wl-title-sep {
+  font-size: 0.95em;
+}
+
+/* Tooltip 移动端不显示（已有判断，额外保险）*/
+.is-mobile .wl-tooltip {
+  display: none !important;
+}
+
+/* 每日诗词 */
+.wl-daily-poem {
+  margin: 4px 4px 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-s);
+  background: var(--background-secondary);
+  border-left: 3px solid var(--text-accent);
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.wl-daily-poem:hover {
+  opacity: 1;
+}
+
+.wl-poem-text {
+  font-size: 0.92em;
+  line-height: 1.6;
+  color: var(--text-normal);
+  margin-bottom: 4px;
+}
+
+.wl-poem-meta {
+  font-size: 0.78em;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.wl-daily-poem:hover {
+  background: var(--background-modifier-hover);
+}
+
+/* 诗词弹窗 */
+.wl-poem-modal {
+  padding: 8px 0;
+  margin: 0 auto;
+}
+
+.wl-poem-modal-body {
+  font-size: 1.2em;
+  line-height: 2.4;
+  margin: 24px 20px;
+  padding: 20px 16px;
+  color: var(--text-normal);
+  text-align: center;
+  white-space: pre-line;
+  user-select: text;
+  border-left: 3px solid var(--text-accent);
+  background: var(--background-primary-alt);
+  border-radius: var(--radius-s);
+}
+
+.wl-poem-modal-author {
+  text-align: center;
+  color: var(--text-muted);
+  margin: 4px 0 20px;
+  font-size: 0.9em;
+  user-select: text;
+}
+
+/* 诗词弹窗复制按钮居中 */
+.wl-poem-modal .setting {
+  justify-content: center;
+  border: none;
+  padding: 0;
+}
+
+/* 诗词自建弹窗（无 .modal-bg，无灰边） */
+.wl-poem-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.wl-poem-panel {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-l);
+  min-width: 360px;
+  max-width: 500px;
+  width: 90vw;
+  padding: 20px 24px;
+}
+
+.wl-poem-panel-title {
+  font-size: 1em;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 16px;
+  color: var(--text-muted);
+}
+
+.wl-poem-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  cursor: pointer;
+  font-size: 1.1em;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: var(--radius-s);
+}
+.wl-poem-close:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.wl-poem-panel .wl-poem-modal-body {
+  font-size: 1.15em;
+  line-height: 2.2;
+  text-align: center;
+  margin: 8px 0;
+  padding: 12px;
+  border-left: 3px solid var(--text-accent);
+  background: var(--background-primary-alt);
+  border-radius: var(--radius-s);
+}
+
+.wl-poem-panel .wl-poem-modal-author {
+  text-align: center;
+  color: var(--text-muted);
+  margin: 4px 0 12px;
+  font-size: 0.9em;
+}
+
+.wl-poem-copy-btn {
+  display: block;
+  text-align: center;
+  padding: 8px 16px;
+  margin: 0 auto;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  font-size: 0.95em;
+  width: fit-content;
+}
+.wl-poem-copy-btn:hover {
+  filter: brightness(1.1);
+}

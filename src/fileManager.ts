@@ -1265,47 +1265,83 @@ export class FileManager {
   // ─────────────────────────────────────────────────────
 
   /**
-   * 获取某年某月有内容的日期集合
+   * 一次读取获取渲染所需全部数据（优化 render 中的3次文件读取为1次）
    */
-  async getDatesWithContent(year: number, month: number): Promise<Set<string>> {
+  async getCalendarData(year: number, month: number): Promise<{
+    datesWithContent: Set<string>;
+    incompleteTodoMap: Map<string, number>;
+    allTodos: { date: string; todos: { text: string; line: number }[] }[];
+  }> {
     const filePath = this.getFilePath(year);
     const file = this.app.vault.getAbstractFileByPath(filePath) as TFile | null;
-    if (!file) return new Set();
+    if (!file) return { datesWithContent: new Set(), incompleteTodoMap: new Map(), allTodos: [] };
 
     const content = await this.app.vault.read(file);
     const lines = content.split("\n");
 
-    const result = new Set<string>();
+    const datesWithContent = new Set<string>();
+    const incompleteTodoMap = new Map<string, number>();
+    const allTodos: { date: string; todos: { text: string; line: number }[] }[] = [];
+
     let currentDate: string | null = null;
+    let currentDateMMDD: string | null = null;
     let hasContent = false;
 
-    for (const line of lines) {
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
       if (line.startsWith("#### ")) {
+        // 保存上一个日期的 content 状态
         if (currentDate && hasContent) {
-          result.add(currentDate);
+          datesWithContent.add(currentDate);
         }
         const m = parseDayTitle(line, this.settings.dateFormat);
         if (m && m.isValid() && m.year() === year && m.month() + 1 === month) {
           currentDate = m.format("YYYY-MM-DD");
+          currentDateMMDD = m.format("MM-DD");
           hasContent = false;
         } else {
-          currentDate = null;
+          currentDate = m ? m.format("YYYY-MM-DD") : null;
+          currentDateMMDD = m ? m.format("MM-DD") : null;
+          hasContent = false;
         }
-      } else if (
-        currentDate &&
-        !line.startsWith("## ") &&
-        !line.startsWith("### ") &&
-        line.trim() !== ""
-      ) {
+      } else if (currentDate && line.trim().startsWith("- [ ]")) {
+        // incompleteTodoMap（当月）
+        if (currentDate.startsWith(`${year}-${String(month).padStart(2, "0")}`)) {
+          incompleteTodoMap.set(currentDate, (incompleteTodoMap.get(currentDate) || 0) + 1);
+        }
+        // allTodos（全部待办）
+        const todoText = line.trim().replace(/^- \[ \]\s*/, "");
+        const last = allTodos[allTodos.length - 1];
+        if (last && last.date === currentDateMMDD) {
+          last.todos.push({ text: todoText, line: i });
+        } else if (currentDateMMDD) {
+          allTodos.push({ date: currentDateMMDD, todos: [{ text: todoText, line: i }] });
+        }
         hasContent = true;
+      } else if (currentDate &&
+                 !line.startsWith("## ") &&
+                 !line.startsWith("### ") &&
+                 line.trim() !== "") {
+        hasContent = true;
+      } else if (line.startsWith("## ") || line.startsWith("### ")) {
+        currentDate = null;
+        currentDateMMDD = null;
       }
     }
     // 最后一个日期
     if (currentDate && hasContent) {
-      result.add(currentDate);
+      datesWithContent.add(currentDate);
     }
 
-    return result;
+    return { datesWithContent, incompleteTodoMap, allTodos };
+  }
+
+  /**
+   * 获取某年某月有内容的日期集合
+   */
+  async getDatesWithContent(year: number, month: number): Promise<Set<string>> {
+    const data = await this.getCalendarData(year, month);
+    return data.datesWithContent;
   }
 
   /**

@@ -44,9 +44,9 @@ export class CalendarView extends ItemView {
     this.registerDomEvent(document, "scroll", () => this.removeTooltip(), true);
     // 点击文档任意位置清除 tooltip
     this.registerDomEvent(document, "click", () => this.removeTooltip());
-    // 仅在打开时加载一次诗词
+    // 诗词后台加载，不阻塞日历渲染
     if (this.plugin.settings.showDailyPoem) {
-      await this.loadPoem();
+      this.loadPoem();
     }
     await this.refresh();
   }
@@ -76,17 +76,13 @@ export class CalendarView extends ItemView {
     container.empty();
     container.addClass("work-log-calendar");
 
-    // 加载当前月份有内容的日期
-    const datesWithContent = await this.plugin.fileManager.getDatesWithContent(
+    // 一次性读取获取全部数据（优化：3次文件读取合并为1次）
+    const calData = await this.plugin.fileManager.getCalendarData(
       this.currentYear,
       this.currentMonth
     );
-
-    // 加载未完成待办
-    const incompleteTodoMap = await this.plugin.fileManager.getIncompleteTodoMap(
-      this.currentYear,
-      this.currentMonth
-    );
+    const datesWithContent = calData.datesWithContent;
+    const incompleteTodoMap = calData.incompleteTodoMap;
 
     this.renderHeader(container);
     this.renderCalendarGrid(container, datesWithContent, incompleteTodoMap);
@@ -97,9 +93,8 @@ export class CalendarView extends ItemView {
     }
     this.renderActionButton(container);
 
-    // 加载所有未完成待办（全文件，非仅选中日期）
-    const allTodos = await this.plugin.fileManager.getAllIncompleteTodos(this.currentYear);
-    this.renderTodoList(container, allTodos);
+    // 所有未完成待办（与日历数据同一次读取获得）
+    this.renderTodoList(container, calData.allTodos);
 
     // 重新挂载诗词区域（切换日期不重新获取，但保持视觉紧贴日历）
     if (poemEl) {
@@ -481,7 +476,7 @@ export class CalendarView extends ItemView {
   private poemData: Poem | null = null;
   private poemSectionEl: HTMLElement | null = null;
 
-  /** 仅在 onOpen 时调用一次，从 API 或本地加载诗词，并创建独立 DOM */
+  /** 后台加载诗词，完成后创建 DOM（不阻塞日历渲染） */
   private async loadPoem(): Promise<void> {
     const skipCache = this.plugin.settings.refreshPoemOnOpen;
     let poem = await fetchDailyPoem(skipCache);
@@ -490,15 +485,25 @@ export class CalendarView extends ItemView {
     }
     this.poemData = poem;
 
+    // 清理旧节点
+    if (this.poemSectionEl) this.poemSectionEl.remove();
+
     // 创建诗词 DOM 节点
-    this.poemSectionEl = this.containerEl.createDiv("wl-daily-poem");
-    const text = this.poemSectionEl.createDiv("wl-poem-text");
+    const section = document.body.createDiv("wl-daily-poem");
+    const text = section.createDiv("wl-poem-text");
     text.textContent = poem.text;
-    const meta = this.poemSectionEl.createDiv("wl-poem-meta");
+    const meta = section.createDiv("wl-poem-meta");
     const titlePart = poem.source ? `${poem.source}  ` : "";
     meta.textContent = `${titlePart}—— ${poem.author}`;
-    this.poemSectionEl.style.cursor = "pointer";
-    this.poemSectionEl.addEventListener("click", () => this.showPoemModal());
+    section.style.cursor = "pointer";
+    section.addEventListener("click", () => this.showPoemModal());
+    this.poemSectionEl = section;
+
+    // 插入到日历容器末尾
+    const container = this.containerEl.children[1] as HTMLElement;
+    if (container) {
+      container.appendChild(section);
+    }
   }
 
   private showPoemModal(): void {
