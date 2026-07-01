@@ -172,13 +172,8 @@ export function formatCouplets(lines: string[]): string[] {
 
 /**
  * 将诗句数组格式化为逐句分行（弹窗显示用）
- * 先清除行末已有标点，再按位置加：奇句逗号，偶句句号
+ * 不加任何标点，完全保留 API 原文
  */
 export function formatPoemLines(lines: string[]): string[] {
-  return lines.map((line, i) => {
-    // 先移除行末标点
-    const clean = line.replace(/[。？！，、；]$/, "");
-    if (i === lines.length - 1) return clean;
-    return clean + (i % 2 === 0 ? "，" : "。");
-  });
+  return lines;
 }

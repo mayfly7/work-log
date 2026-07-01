@@ -1830,12 +1830,7 @@ function formatCouplets(lines) {
   return couplets;
 }
 function formatPoemLines(lines) {
-  return lines.map((line, i) => {
-    const clean = line.replace(/[。？！，、；]$/, "");
-    if (i === lines.length - 1)
-      return clean;
-    return clean + (i % 2 === 0 ? "\uFF0C" : "\u3002");
-  });
+  return lines;
 }
 
 // src/calendarView.ts
