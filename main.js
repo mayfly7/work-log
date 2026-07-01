@@ -1830,12 +1830,11 @@ function formatCouplets(lines) {
   return couplets;
 }
 function formatPoemLines(lines) {
-  const ends = /[。？！，]$/;
   return lines.map((line, i) => {
+    const clean = line.replace(/[。？！，、；]$/, "");
     if (i === lines.length - 1)
-      return line;
-    const punct = i % 2 === 0 ? "\uFF0C" : "\u3002";
-    return ends.test(line) ? line : line + punct;
+      return clean;
+    return clean + (i % 2 === 0 ? "\uFF0C" : "\u3002");
   });
 }
 
