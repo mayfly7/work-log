@@ -958,6 +958,7 @@ mark.wl-highlight {
   border-left: 3px solid var(--text-accent);
   background: var(--background-primary-alt);
   border-radius: var(--radius-s);
+  white-space: pre-line;
 }
 
 .wl-poem-panel .wl-poem-modal-author {
