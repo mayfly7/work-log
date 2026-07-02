@@ -1780,7 +1780,7 @@ async function fetchDailyPoem(skipCache = false) {
       return null;
     const d = data;
     const lines = d.content;
-    const isShort = lines.length <= 8 && lines.join("").length <= 56;
+    const isShort = lines.length <= 12 && lines.join("").length <= 80;
     const selected = isShort ? lines : lines.slice(0, 2);
     const text = formatCouplets(selected).join("\uFF0C");
     const poem = {

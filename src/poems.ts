@@ -106,10 +106,10 @@ export async function fetchDailyPoem(skipCache = false): Promise<Poem | null> {
     }
     if (!data) return null;
 
-    // ≤8 句且 ≤56 字显示全文，长诗显示前两句
+    // 侧边栏预览：≤12 句且 ≤80 字显示全文，否则取前 2 句（词排可能行数多但字数少）
     const d = data;
     const lines = d.content;
-    const isShort = lines.length <= 8 && lines.join("").length <= 56;
+    const isShort = lines.length <= 12 && lines.join("").length <= 80;
     const selected = isShort ? lines : lines.slice(0, 2);
     const text = formatCouplets(selected).join("，");
 
