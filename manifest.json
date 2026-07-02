@@ -1,7 +1,7 @@
 {
   "id": "work-log",
   "name": "工作日志 Work Log",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "minAppVersion": "0.15.0",
   "description": "以年度单文件形式记录每日工作，按月分组、按周归类，提供日历视图快速跳转。",
   "author": "mayfly7 (虚白)",
