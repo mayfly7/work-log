@@ -87,7 +87,10 @@ export async function fetchDailyPoem(skipCache = false): Promise<Poem | null> {
       const raw = localStorage.getItem("wl-poem-cache");
       if (raw) {
         const cached = JSON.parse(raw);
-        if (cached.date === today && cached.poem) return cached.poem;
+        // v1 缓存：同时检查 fullText 存在性，兼容旧缓存
+        if (cached.date === today && cached.poem && cached.poem.fullText) {
+          return cached.poem;
+        }
       }
     } catch { /* ignore */ }
   }

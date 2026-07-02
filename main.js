@@ -1760,8 +1760,9 @@ async function fetchDailyPoem(skipCache = false) {
       const raw = localStorage.getItem("wl-poem-cache");
       if (raw) {
         const cached = JSON.parse(raw);
-        if (cached.date === today && cached.poem)
+        if (cached.date === today && cached.poem && cached.poem.fullText) {
           return cached.poem;
+        }
       }
     } catch (e) {
     }
